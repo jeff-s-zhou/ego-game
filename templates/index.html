@@ -2,12 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Brink</title>
-    <link rel="stylesheet" href="bootstrap-3.3.6-dist/css/bootstrap.min.css">
+    <title>Ego</title>
+    <link href='https://fonts.googleapis.com/css?family=Raleway:500' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js" integrity="sha384-ux8v3A6CPtOTqOzMKiuo3d/DomGaaClxFYdCu2HPMBEkf6x2xiDyJ7gkXU0MWwaD" crossorigin="anonymous"></script>
+    <style>
+        form { padding: 3px; position: fixed; bottom: 0; color: black;}
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 5px 10px; }
+        #messages li:nth-child(odd) { background: #2d2d2d; }
+
+        body {
+            background-color: #231b1b;
+            color: white;
+        }
+
+        h1, h2 {
+            font-family: 'Raleway', sans-serif;
+        }
+
+        ul {
+            list-style-type: none;
+            font-size: 24px;
+        }
+
+        #combat {background-color: #2d2d2d; font-size: 18px;}
+        #combat li {padding: 10px}
+
+    </style>
 </head>
 <body>
 <div id="content">
 </div>
 </body>
 <script src="js/bundle.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 </html>

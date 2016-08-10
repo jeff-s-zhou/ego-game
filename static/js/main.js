@@ -18,7 +18,7 @@ var LinkContainer = require('react-router-bootstrap/lib/LinkContainer');
 
 //our own react modules, handled differently
 
-var Home = require('./home');
+var Combat = require('./combat');
 
 var App = React.createClass({
   render: function() {
@@ -31,10 +31,10 @@ var App = React.createClass({
 });
 
 ReactDOM.render((
-  <Router>
-    <Route path="/" component={App}>
-        <IndexRoute component={Home} />
-    </Route>
-  </Router>
-), document.getElementById('content')
+        <Router>
+            <Route path="/" component={App}>
+                <IndexRoute component={Combat} />
+            </Route>
+        </Router>
+    ), document.getElementById('content')
 );
