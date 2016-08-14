@@ -5,7 +5,7 @@ from flask import Flask, request, redirect, url_for, render_template, session, f
 from flask_socketio import SocketIO, emit
 
 from shared import db
-from models import Player
+from models import Character
 from combat import get_precombat_state
 
 app = Flask('ego', static_url_path='')
@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ego.db'
 with app.app_context():
     db.create_all()
     api_manager = APIManager(app, flask_sqlalchemy_db=db)
-    api_manager.create_api(Player, methods=['GET', 'DELETE', 'PUT', 'POST'])
+    api_manager.create_api(Character, methods=['GET', 'DELETE', 'PUT', 'POST'])
 
 
 #TODO: need to make this shit threadsafe eventually

@@ -30,3 +30,6 @@ class Poisoned(Debuff):
 
     def undo(self):
         pass
+
+    def isVisible(self):
+        return True
