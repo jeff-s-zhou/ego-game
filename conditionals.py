@@ -1,95 +1,133 @@
-import combat
+from typing import Tuple, List
 
-class Conditional():
-    def __init__(self, affected, types):
-        self.affected = affected
+import combat
+from character import Character
+from status import Status
+
+class StateHandler():
+    def __init__(self):
+        self.valid = True
+
+    def triggered(self):
+        pass
+
+    def turn_tick(self):
+        pass
+
+    def is_castable(self):
+        pass
+
+
+class Permanent(StateHandler):
+    def __init__(self, max_cooldown):
+        self.max_cooldown = max_cooldown
+        self.cooldown = 0
+        super().__init__()
+
+    def triggered(self):
+        self.cooldown = self.max_cooldown
+
+    def turn_tick(self):
+        if self.cooldown > 0:
+            self.cooldown -= self.cooldown
+
+    def is_castable(self):
+        return self.cooldown == 0
+
+
+class Temporary(StateHandler):
+    def __init__(self, duration):
+        self.duration = duration
+        super().__init__()
+
+    def triggered(self):
+        self.valid = False
+
+    def turn_tick(self):
+        self.duration -= 1
+        if self.duration == 0:
+            self.valid = False
+
+    def is_castable(self):
+        return self.valid
+
+
+class Conditional(Status):
+    def __init__(self, caster:Character, target:Character, types, state_handler:StateHandler):
+        super().__init__()
+        self.caster = caster
+        self.target = target
         self.types = types
+        self.state_handler = state_handler
 
     def hasType(self, type):
         return type in self.types
 
 
-# postconditional, temporary
-class Protect(Conditional):
+PreConditionalReturnType = Tuple(combat.SkillCast, List[combat.SkillCast])
+
+class PreConditional(Conditional):
+    def __init__(self, caster, target, types, state_handler):
+        super().__init__(caster, target, types, state_handler)
+
+    def modify(self, cast: combat.SkillCast) -> PreConditionalReturnType:
+        pass
+
+
+class PostConditional(Conditional):
+    def __init__(self, caster, target, types, state_handler):
+        super().__init__(caster, target, types, state_handler)
+
+    def modify(self, cast: combat.SkillCast) -> List[combat.SkillCast]:
+        pass
+
+
+class Protect(PreConditional):
     def __init__(self, caster, target):
-        self.priority = 1
-        self.valid = True
-        self.duration = 1
-        self.caster = caster
-        self.target = target
-        self.permanent = False
-        super().__init__([target], [combat.Type.holy])
+        state_handler = Temporary(2)
+        super().__init__(caster, target, [combat.Type.holy], state_handler)
 
     def modify(self, cast):
         if (cast.target == self.target):
             cast.set_target(self.target, self.caster)
-            self.triggered()
+            self.state_handler.triggered()
             return cast, None
 
-    def triggered(self):
-        self.valid = False
 
-    def caster_turn_round_tick(self):
-        self.duration -= 1
-        if self.duration == 0:
-            self.valid = False
-
-
-# postconditional, permanent
-class Lifesteal(Conditional):
+class Lifesteal(PostConditional):
     def __init__(self, caster):
-        self.priority = 1
-        self.cooldown = 0
         self.caster = caster
-        self.valid = True
-        self.permanent = True
-        super().__init__([caster], combat.Type.lifesteal)
+        state_handler = Permanent(6)
+        super().__init__(caster, caster, [combat.Type.lifesteal], state_handler)
 
     def modify(self, cast):
-        if cast.caster == self.caster and cast.damage > 0 and self.valid == True:
-            self.triggered()
-            #TODO: refactor this into calling the LifestealActive.do()?
+        if cast.caster == self.caster and cast.damage > 0:
+            self.state_handler.triggered()
             return self.cast_active(cast)
+        else:
+            return None
 
-    def triggered(self):
-        self.valid = False
-        self.cooldown = 6
-
-    def caster_turn_round_tick(self):
-        if self.valid == False:
-            self.cooldown -= 1
-            if (self.cooldown == 0):
-                self.valid = True
-
-    def cast_active(self, cast):
-        #TODO: might need to change the self call to the original passive
-        heal = combat.Heal(self.caster, self.caster, cast.damage / 25)
-        return combat.SingleHealCast(self.caster, cast.target, self, [heal])
+    def cast_active(self, original_cast:combat.SkillCast) -> combat.SkillCast:
+        # TODO: might need to change the self call to the original passive
+        heal = combat.Heal(self.caster, self.caster, original_cast.damage / 25)
+        return combat.SingleHealCast(self.caster, original_cast.target, self, [heal])
 
 
-# preconditional, temporary
-class BlackBlood(Conditional):
+class BlackBlood(PreConditional):
     def __init__(self, caster):
-        self.priority = 1
         self.caster = caster
-        self.duration = 5
         self.valid = True
-        super().__init__([caster], [])
+        state_handler = Temporary(4)
+        super().__init__(caster, caster, [], state_handler)
 
     def modify(self, cast):
         if cast.target == self.caster and cast.skill.hasType(combat.Type.lifesteal):
-            self.triggered()
-            return self.cast_active(cast)
+            self.state_handler.triggered()
+            return cast, self.cast_active(cast)
+        else:
+            return cast, None
 
-    def triggered(self):
-        self.valid = False
-
-    def caster_turn_round_tick(self):
-        self.duration -= 1
-        if self.duration == 0:
-            self.valid = False
-
-    def cast_active(self, cast):
-            heal_amount = cast.get_heal_amount()
-            damage = combat.Damage(cast.target, cast.caster, heal_amount)
-            return combat.SkillCast(cast.target, cast.caster, self, [damage])
+    def cast_active(self, original_cast:combat.SingleHealCast) -> combat.SkillCast:
+        heal_amount = original_cast.get_heal_amount()
+        damage = combat.Damage(original_cast.target, original_cast.caster, heal_amount)
+        return combat.SkillCast(original_cast.target, original_cast.caster, self, [damage])

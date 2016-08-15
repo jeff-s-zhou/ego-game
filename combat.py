@@ -1,11 +1,11 @@
+import my_globals
 
-#get the role of the current player #
+# get the role of the current player #
 from enum import Enum
 
+from typing import List
 
-def get_precombat_state(player_count):
-    pass
-
+from character import Character
 
 
 class Type(Enum):
@@ -13,22 +13,32 @@ class Type(Enum):
     holy = 2
     lifesteal = 3
 
+
 '''we use the command pattern here instead of functional programming
 because each event needs an author so we can undo all of them that belong to the same skill.
 We also want the round and turn it's cast on so we can undo everything from a specific time
 '''
+
 class Event:
     def __init__(self, caster, target):
-        #TODO: we want an author on all events
+        # TODO: we want an author on all events
         self.author = None
-        #TODO: also want the round and turn it's cast on
+        # TODO: also want the round and turn it's cast on
         self.round = None
         self.turn = None
         self.caster = caster
         self.target = target
 
+    def do(self):
+        pass
 
-#undo the last skill cast on the target
+    def undo(self):
+        pass
+
+
+# undo the last skill cast on the target
+# Note: all undo commands in events should literally just undo the do
+# the assumption is that we've already reverted back to the state at the time of the event
 class UndoState(Event):
     def __init__(self, caster, target):
         super().__init__(caster, target)
@@ -39,6 +49,20 @@ class UndoState(Event):
 
     def undo(self):
         self.last_affected_update.do()
+
+
+# target is who the conditional goes onto
+class AddConditional(Event):
+    def __init__(self, caster, target, conditional, pre):
+        super().__init__(caster, None)
+        self.conditional = conditional
+        self.pre = pre
+
+    def do(self):
+        self.target.add_status(self.conditional)
+
+    def undo(self):
+        self.target.remove_status(self.conditional)
 
 
 class Damage(Event):
@@ -95,8 +119,8 @@ class ReduceMana(Event):
         self.target.mana = self.target.mana + self.mana
 
 
-class SkillCast():
-    def __init__(self, caster, target, skill, events):
+class SkillCast:
+    def __init__(self, caster:Character, target:Character, skill, events:List(Event)):
         self.caster = caster
         self.target = target
         self.skill = skill
@@ -111,8 +135,12 @@ class SkillCast():
             if self.target == old_target:
                 self.target = new_target
 
+    def do(self):
+        for event in self.events:
+            event.do()
 
-#TODO:, abstract this out to deal with AoE
+
+# TODO:abstract this out to deal with AoE
 class SingleHealCast(SkillCast):
     def __init__(self, caster, target, skill, events):
         super().__init__(caster, target, skill, events)
@@ -123,70 +151,3 @@ class SingleHealCast(SkillCast):
                 return event.heal
         else:
             return 0
-
-class CombatManager:
-    def __init__(self):
-        self.pre_conditional_listeners = []
-        self.post_conditional_listeners = []
-
-    def resolve_round(self):
-        #signal top of round tick
-        #for combatant in ordered_combatants:
-            #self.resolve_turn(combatant)
-        #signal end of round tick
-        pass
-
-    def resolve_turn(self, combatant):
-        #signal start of round for combatant tick
-
-        #caster, target, skill_cast = wait 5 seconds for command by combatant
-        #self.resolve_cast(caster, target, skill_cast)
-
-        #signal turn tick
-        pass
-
-    def resolve_cast(self, caster, target, skill_cast):
-        casts = [skill_cast]
-        while casts != []:
-            #handle pre cast conditionals
-            current_cast = casts.pop()
-            modified_cast, new_casts = self.apply_pre_conditionals(current_cast)
-            casts.append(new_casts)
-
-            modified_cast.do()
-
-            #handle post cast conditionals
-            new_casts = self.apply_post_conditionals(modified_cast)
-            casts.append(new_casts)
-
-    def apply_pre_conditionals(self, cast):
-            affected = cast.get_affected_units
-            valid_listeners = self.get_valid_pre_listeners(affected)
-
-            modified_cast = cast
-            new_casts = []
-            for listener in valid_listeners:
-                new_modified, new_cast = listener.modify(cast)
-                modified_cast = new_modified
-                new_casts.append(new_cast)
-
-            return modified_cast, new_casts
-
-
-    def get_valid_pre_listeners(self, affected):
-        pass
-
-    def apply_post_conditionals(self, cast):
-        affected = cast.get_affected_units
-        valid_listeners = self.get_valid_post_listeners(affected)
-
-        new_casts = []
-        for listener in valid_listeners:
-            new_cast = listener.modify(cast)
-            new_casts.append(new_cast)
-
-        return new_casts
-
-    def get_valid_post_listeners(self, affected):
-        pass
-

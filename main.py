@@ -19,14 +19,14 @@ with app.app_context():
     api_manager = APIManager(app, flask_sqlalchemy_db=db)
     api_manager.create_api(Character, methods=['GET', 'DELETE', 'PUT', 'POST'])
 
-
-#TODO: need to make this shit threadsafe eventually
+# TODO: need to make this shit threadsafe eventually
 
 NUM_PLAYERS = 3
 
 player_count = 0
 
-#delete
+
+# delete
 def get_fake_char(number):
     if number == 1:
         pass
@@ -40,6 +40,7 @@ def get_fake_char(number):
 def index():
     return render_template("index.html")
 
+
 @socketio.on('connect')
 def log_connected():
     global player_count
@@ -47,15 +48,17 @@ def log_connected():
     precombat_state = get_precombat_state(get_fake_char(player_count))
     emit('precombat', precombat_state)
 
-    #last person in triggers game start
-    #TODO: on refresh/rejoin, we get the current state of the game
-    if(player_count > NUM_PLAYERS):
+    # last person in triggers game start
+    # TODO: on refresh/rejoin, we get the current state of the game
+    if (player_count > NUM_PLAYERS):
         emit('combat start', broadcast=True)
+
 
 @socketio.on('disconnect')
 def log_disconnected():
     print('a user disconnected')
-    #TODO: once every player disconnects, pickle the suspended state of the battle
+    # TODO: once every player disconnects, pickle the suspended state of the battle
+
 
 @socketio.on('chat message')
 def test_message(message):
@@ -64,5 +67,5 @@ def test_message(message):
 
 
 if __name__ == '__main__':
-    #app.run()
+    # app.run()
     socketio.run(app)
