@@ -1,0 +1,18 @@
+from threading import Lock
+
+#this needs to handle getting state from the thread too
+
+class CombatMonitor:
+    def __init__(self, combat_manager):
+        self.turn_lock = Lock()
+        self.combat_manager = combat_manager
+
+    def signal_times_up(self, current_combatant):
+        with self.turn_lock:
+            if self.combat_manager.get_current_combatant() == current_combatant:
+                self.combat_manager.turn_time_up()
+
+    def send_input(self, current_combatant):
+        with self.turn_lock:
+            if self.combat_manager.get_current_combatant() == current_combatant:
+                self.combat_manager.resolve_turn(input)

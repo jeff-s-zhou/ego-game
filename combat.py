@@ -1,12 +1,8 @@
-import my_globals
 
 # get the role of the current player #
 from enum import Enum
 
 from typing import List
-
-from character import Character
-
 
 class Type(Enum):
     fire = 1
@@ -120,7 +116,7 @@ class ReduceMana(Event):
 
 
 class SkillCast:
-    def __init__(self, caster:Character, target:Character, skill, events:List(Event)):
+    def __init__(self, caster, target, skill, events:List[Event]):
         self.caster = caster
         self.target = target
         self.skill = skill

@@ -1,7 +1,6 @@
 from typing import Tuple, List
 
 import combat
-from character import Character
 from status import Status
 
 class StateHandler():
@@ -53,15 +52,21 @@ class Temporary(StateHandler):
 
 
 class Conditional(Status):
-    def __init__(self, caster:Character, target:Character, types, state_handler:StateHandler):
+    def __init__(self, caster, target, types, state_handler:StateHandler):
         super().__init__()
         self.caster = caster
         self.target = target
         self.types = types
         self.state_handler = state_handler
 
-    def hasType(self, type):
+    def has_type(self, type):
         return type in self.types
+
+    def is_valid(self):
+        return self.state_handler.valid
+
+    def is_castable(self):
+        return self.state_handler.is_castable()
 
 
 PreConditionalReturnType = Tuple(combat.SkillCast, List[combat.SkillCast])
@@ -108,7 +113,6 @@ class Lifesteal(PostConditional):
             return None
 
     def cast_active(self, original_cast:combat.SkillCast) -> combat.SkillCast:
-        # TODO: might need to change the self call to the original passive
         heal = combat.Heal(self.caster, self.caster, original_cast.damage / 25)
         return combat.SingleHealCast(self.caster, original_cast.target, self, [heal])
 
@@ -121,7 +125,7 @@ class BlackBlood(PreConditional):
         super().__init__(caster, caster, [], state_handler)
 
     def modify(self, cast):
-        if cast.target == self.caster and cast.skill.hasType(combat.Type.lifesteal):
+        if cast.target == self.caster and cast.skill.has_type(combat.Type.lifesteal):
             self.state_handler.triggered()
             return cast, self.cast_active(cast)
         else:

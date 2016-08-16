@@ -6,19 +6,11 @@ import combat
 class PassiveSkill():
     def __init__(self, caster, max_cooldown):
         self.caster = caster
-        self.cooldown = 0
-        self.max_cooldown = max_cooldown
 
     # passive skills are all "cast" at the start of battle
     # and whenever their cooldowns are off
     def cast(self):
-        self.cooldown = self.max_cooldown
-
-    def turn_tick(self):
-        self.cooldown -= 1
-        if self.cooldown == 0:
-            self.cast()
-
+        pass
 
 # this is basically an active skill, except applied when another skill triggers it
 class Lifesteal(PassiveSkill):

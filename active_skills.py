@@ -42,17 +42,21 @@ class Targets(Enum):
 
 
 class Skill:
-    def __init__(self, caster, types):
+    def __init__(self, caster: Character, types):
         self.caster = caster
         self.types = types
 
     def cast(self, target: Character) -> combat.SkillCast:
         pass
 
+    def has_type(self, type):
+        return type in self.types
+
+
+
 
 # we're choosing not to do a big tree of inheritance because each skill should feel pretty unique
 
-# each player has one Skill for each skill they have
 # single target prototype
 class Slash(Skill):
     def __init__(self, caster):
