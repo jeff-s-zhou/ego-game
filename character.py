@@ -3,14 +3,6 @@
 import conditionals
 from combat import SkillCast
 
-#TODO: probably need to just change all this to a serialize
-class State():
-    def __init__(self, character:Character):
-        self.hp = character.hp
-        self.mana = character.mana
-        self.status_states = [status.get_state() for status in character.statuses]
-        self.active_skill_states = [skill.get_state() for skill in character.active_skills]
-
 class Character:
     def __init__(self, id, name, stats, active_skills, passive_skills):
         self.id = id

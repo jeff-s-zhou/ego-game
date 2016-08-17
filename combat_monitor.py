@@ -7,12 +7,16 @@ class CombatMonitor:
         self.turn_lock = Lock()
         self.combat_manager = combat_manager
 
-    def signal_times_up(self, current_combatant):
+    def signal_times_up(self, current_combatant_name):
         with self.turn_lock:
-            if self.combat_manager.get_current_combatant() == current_combatant:
+            if self.combat_manager.get_current_combatant().name == current_combatant_name:
                 self.combat_manager.turn_time_up()
+                return True
+            return False
 
-    def send_input(self, current_combatant):
+    def send_input(self, turn_input, current_combatant_name):
         with self.turn_lock:
-            if self.combat_manager.get_current_combatant() == current_combatant:
-                self.combat_manager.resolve_turn(input)
+            if self.combat_manager.get_current_combatant().name == current_combatant_name:
+                self.combat_manager.resolve_turn(turn_input)
+                return True
+            return False

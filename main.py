@@ -3,7 +3,7 @@ from threading import Timer
 __author__ = 'Jeffrey'
 
 from flask_restless import APIManager
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 
 from shared import db
@@ -23,36 +23,16 @@ with app.app_context():
     api_manager = APIManager(app, flask_sqlalchemy_db=db)
     api_manager.create_api(Character, methods=['GET', 'DELETE', 'PUT', 'POST'])
 
-# TODO: need to make this shit threadsafe eventually
-NUM_PLAYERS = 3
-player_count = 0
-
-combat_manager = CombatManager()
+room_manager = RoomManager()
+characters = room_manager.get_combatants()
+combat_manager = CombatManager(characters)
 combat_monitor = CombatMonitor(combat_manager)
-
-# delete
-def get_fake_char(number):
-    if number == 1:
-        pass
-    elif number == 2:
-        pass
-    elif number == 3:
-        pass
 
 
 @app.route('/')
 def index():
     return render_template("index.html")
 
-
-@socketio.on('connect')
-def log_connected():
-    global player_count
-    player_count = player_count + 1
-    # last person in triggers game start
-    # TODO: on refresh/rejoin, we get the current state of the game
-    if (player_count > NUM_PLAYERS):
-        emit('combat start', broadcast=True)
 
 @socketio.on('disconnect')
 def log_disconnected():
@@ -63,27 +43,57 @@ def log_disconnected():
 def emit_message(message):
     emit('chat message', message, broadcast=True)
 
-@socketio.on('turn_input')
-def handle_turn_input(input):
-    #TODO: make sure it's the right session, right character, etc.
-    combat_monitor.send_input(current_combatant)
 
-def times_up():
-    combat_monitor.signal_times_up(current_combatant)
 
-def emit_start_turn():
-    socketio.emit('turn_start')
-    Timer(5.0, times_up())
+@socketio.on('connect')
+def log_connected():
+    character = room_manager.get_character(request.sid)
+    # TODO: on refresh/rejoin, we get the current state of the game
 
-def emit_state(state):
-    socketio.emit('some event', (state))
+    pre_combat_state = combat_manager.get_state_for(character)
+    emit('pre combat state', pre_combat_state, room=request.sid)
+
+    if(room_manager.all_combatants_present()):
+        emit('combat start', broadcast=True)
+        start_character = combat_manager.get_current_combatant()
+        sid = room_manager.get_sid(start_character)
+        emit('your turn', room=sid)
+        Timer(5.0, times_up(start_character.character_name))
+
 
 '''
 input:
-    character_name:
+    caster_name:
     skill_name:
     target_name:
 '''
+@socketio.on('turn_input')
+def handle_turn_input(turn_input):
+    #TODO: make sure it's the right session, right character, valid skill, etc.
+    success = combat_monitor.send_input(turn_input, turn_input.name)
+    if success:
+
+        for combatant in combat_manager.combatants:
+            sid = room_manager.get_sid(combatant)
+            my_combat_state = combat_manager.get_state_for(combatant)
+            emit('my combat state', my_combat_state, room=sid)
+
+        combat_state = combat_manager.get_state()
+        emit('combat state', combat_state, broadcast=True)
+        current_character = combat_manager.get_current_combatant()
+        sid = room_manager.get_sid(current_character)
+        emit('current turn', current_character.name, broadcast=True)
+        Timer(5.0, times_up(current_character.character_name))
+
+
+def times_up(character_name):
+    success = combat_monitor.signal_times_up(character_name)
+    if success:
+        current_character = combat_manager.get_current_combatant()
+        socketio.emit('current turn', current_character.name, broadcast=True)
+        Timer(5.0, times_up(current_character.character_name))
+
+
 
 '''
 state:
@@ -106,15 +116,30 @@ state:
             ]
     ]
 '''
-@socketio.on('turn_input')
-def handle_turn_input(input):
-    #check to make sure it's the user's turn with flask-login and current_user
-    #check to make sure it's a valid move
-    #check to make sure it's valid target
-    pass
-
-
 
 if __name__ == '__main__':
     # app.run()
     socketio.run(app)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

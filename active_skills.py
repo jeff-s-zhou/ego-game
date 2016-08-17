@@ -53,8 +53,6 @@ class Skill:
         return type in self.types
 
 
-
-
 # we're choosing not to do a big tree of inheritance because each skill should feel pretty unique
 
 # single target prototype
@@ -74,7 +72,7 @@ class Slash(Skill):
 
 
 # targetable buff prototype
-class Protect(Skill):
+'''class Protect(Skill):
     def __init__(self, caster):
         self.cooldown = 0
         super().__init__(caster, [combat.Type.holy])
@@ -150,4 +148,4 @@ class LightsLitany(Skill):
 # only allowed target is ALL
 class FinalJudgment(Skill):
     def __init__(self, caster, target):
-        super().__init__()
+        super().__init__()'''

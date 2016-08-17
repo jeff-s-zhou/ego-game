@@ -32,21 +32,6 @@ class Event:
         pass
 
 
-# undo the last skill cast on the target
-# Note: all undo commands in events should literally just undo the do
-# the assumption is that we've already reverted back to the state at the time of the event
-class UndoState(Event):
-    def __init__(self, caster, target):
-        super().__init__(caster, target)
-
-    def do(self):
-        self.last_affected_update = self.target.get_last_affected_update
-        self.last_affected_update.undo()
-
-    def undo(self):
-        self.last_affected_update.do()
-
-
 # target is who the conditional goes onto
 class AddConditional(Event):
     def __init__(self, caster, target, conditional, pre):
@@ -77,18 +62,6 @@ class Damage(Event):
             self.damage = 0
         else:
             self.damage = amount
-
-
-class Heal(Event):
-    def __init__(self, caster, target, heal):
-        super().__init__(caster, target)
-        self.heal = heal
-
-    def do(self):
-        self.target.health = self.target.health + self.heal
-
-    def undo(self):
-        self.target.health = self.target.health + self.heal
 
 
 class ApplyStatus(Event):
@@ -147,3 +120,34 @@ class SingleHealCast(SkillCast):
                 return event.heal
         else:
             return 0
+
+
+'''
+
+# undo the last skill cast on the target
+# Note: all undo commands in events should literally just undo the do
+# the assumption is that we've already reverted back to the state at the time of the event
+class UndoState(Event):
+    def __init__(self, caster, target):
+        super().__init__(caster, target)
+
+    def do(self):
+        self.last_affected_update = self.target.get_last_affected_update
+        self.last_affected_update.undo()
+
+    def undo(self):
+        self.last_affected_update.do()
+'''
+
+'''
+class Heal(Event):
+    def __init__(self, caster, target, heal):
+        super().__init__(caster, target)
+        self.heal = heal
+
+    def do(self):
+        self.target.health = self.target.health + self.heal
+
+    def undo(self):
+        self.target.health = self.target.health + self.heal
+'''

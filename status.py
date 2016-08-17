@@ -4,3 +4,6 @@ class Status:
 
     def is_valid(self):
         return False
+
+    def is_visible(self):
+        return False

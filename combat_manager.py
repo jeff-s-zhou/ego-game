@@ -4,18 +4,37 @@ from character import Character
 from combat import SkillCast
 
 
+class BasicState():
+    def __init__(self, character:Character):
+        self.hp = character.hp
+        self.mana = character.mana
+        self.status_states = [status.get_state() for status in character.statuses if status.is_visible()]
+
+
+class State():
+    def __init__(self, character:Character):
+        self.hp = character.hp
+        self.mana = character.mana
+        self.status_states = [status.get_state() for status in character.statuses]
+        self.active_skill_states = [skill.get_state() for skill in character.active_skills]
+
+
 class CombatManager:
-    def __init__(self, combatants, emit_start_turn, emit_updated_state):
+    def __init__(self, combatants):
         self.combatants = combatants
         self.current_combatant_index = 0
         self.global_pre_conditional_listeners = []
         self.global_post_conditional_listeners = []
-        self.emit_start_turn = emit_start_turn
-        self.emit_updated_state = emit_updated_state
         # apply passives
 
-    def get_precombat_state(self):
-        return None
+    #get the precombat state from the perspective of the character
+    #that means basic states of everyone, detailed state of yourself
+    def get_state_for(self, combatant):
+        return State(combatant)
+
+    #get overall combat state, basic
+    def get_state(self):
+        return [BasicState(combatant) for combatant in self.combatants]
 
     def get_current_combatant(self):
         return self.combatants[self.current_combatant_index]
@@ -28,7 +47,6 @@ class CombatManager:
 
     def turn_time_up(self):
         self.current_combatant_index += 1
-        self.emit_start_turn(self.get_current_combatant())
 
     def resolve_turn(self, input):
         caster = self.get_current_combatant()
@@ -40,13 +58,10 @@ class CombatManager:
         # TODO: I need to figure out where I return the message log
 
         # TODO: remove invalids actors
-        updated_state = [character.state for character in self.combatants]
-        self.emit_updated_state(updated_state)
         self.current_combatant_index += 1
-        self.emit_start_turn(self.get_current_combatant())
 
 
-    def resolve_cast(self, caster, target, skill_cast):
+    def resolve_cast(self, skill_cast):
         casts = [skill_cast]
         while casts:
             # handle pre cast conditionals
@@ -59,6 +74,7 @@ class CombatManager:
             # handle post cast conditionals
             new_casts = self.apply_post_conditionals(modified_cast)
             casts.append(new_casts)
+
 
     def apply_pre_conditionals(self, cast:SkillCast):
         valid_listeners = self.get_pre_listeners(cast)

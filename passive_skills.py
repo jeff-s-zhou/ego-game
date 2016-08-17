@@ -3,7 +3,7 @@ import conditionals
 import combat
 
 
-class PassiveSkill():
+'''class PassiveSkill():
     def __init__(self, caster, max_cooldown):
         self.caster = caster
 
@@ -20,4 +20,4 @@ class Lifesteal(PassiveSkill):
     def cast(self):
         lifesteal = conditionals.Lifesteal(self.caster)
         conditional_event = combat.AddConditional(self.caster, self.caster, lifesteal, pre=False)
-        return combat.SkillCast(self.caster, self.caster, self, [conditional_event])
+        return combat.SkillCast(self.caster, self.caster, self, [conditional_event])'''
