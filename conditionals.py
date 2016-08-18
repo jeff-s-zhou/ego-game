@@ -69,7 +69,7 @@ class Conditional(Status):
         return self.state_handler.is_castable()
 
 
-PreConditionalReturnType = Tuple(combat.SkillCast, List[combat.SkillCast])
+PreConditionalReturnType = Tuple[combat.SkillCast, List[combat.SkillCast]]
 
 class PreConditional(Conditional):
     def __init__(self, caster, target, types, state_handler):

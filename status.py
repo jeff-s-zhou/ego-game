@@ -7,3 +7,7 @@ class Status:
 
     def is_visible(self):
         return False
+
+    #TODO
+    def to_dict(self):
+        return None

@@ -11,6 +11,7 @@ from models import Character
 
 from combat_manager import CombatManager
 from combat_monitor import CombatMonitor
+from room_manager import RoomManager
 
 app = Flask('ego', static_url_path='')
 db.init_app(app)
@@ -25,7 +26,8 @@ with app.app_context():
 
 room_manager = RoomManager()
 characters = room_manager.get_combatants()
-combat_manager = CombatManager(characters)
+print()
+combat_manager = CombatManager(list(characters))
 combat_monitor = CombatMonitor(combat_manager)
 
 
@@ -39,10 +41,10 @@ def log_disconnected():
     print('a user disconnected')
     # TODO: once every player disconnects, pickle the suspended state of the battle
 
+
 @socketio.on('chat message')
 def emit_message(message):
     emit('chat message', message, broadcast=True)
-
 
 
 @socketio.on('connect')
@@ -54,11 +56,12 @@ def log_connected():
     emit('pre combat state', pre_combat_state, room=request.sid)
 
     if(room_manager.all_combatants_present()):
-        emit('combat start', broadcast=True)
+        combat_state = combat_manager.get_state()
+        emit('combat state', combat_state, broadcast=True)
+        emit('combat start', 'start', broadcast=True)
         start_character = combat_manager.get_current_combatant()
-        sid = room_manager.get_sid(start_character)
-        emit('your turn', room=sid)
-        Timer(5.0, times_up(start_character.character_name))
+        emit('current_turn', start_character.name, broadcast=True)
+        Timer(5.0, times_up(start_character.name))
 
 
 '''
@@ -81,9 +84,8 @@ def handle_turn_input(turn_input):
         combat_state = combat_manager.get_state()
         emit('combat state', combat_state, broadcast=True)
         current_character = combat_manager.get_current_combatant()
-        sid = room_manager.get_sid(current_character)
         emit('current turn', current_character.name, broadcast=True)
-        Timer(5.0, times_up(current_character.character_name))
+        Timer(5.0, times_up(current_character.name))
 
 
 def times_up(character_name):
@@ -91,7 +93,7 @@ def times_up(character_name):
     if success:
         current_character = combat_manager.get_current_combatant()
         socketio.emit('current turn', current_character.name, broadcast=True)
-        Timer(5.0, times_up(current_character.character_name))
+        Timer(5.0, times_up(current_character.name))
 
 
 
@@ -107,6 +109,7 @@ state:
                 status:
                     type:
                     name:
+                    visible:
                     duration OR cooldown:
             ]
             active_skills:[

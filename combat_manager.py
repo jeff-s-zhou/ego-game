@@ -1,23 +1,8 @@
 from collections import defaultdict
+from typing import List
 
 from character import Character
 from combat import SkillCast
-
-
-class BasicState():
-    def __init__(self, character:Character):
-        self.hp = character.hp
-        self.mana = character.mana
-        self.status_states = [status.get_state() for status in character.statuses if status.is_visible()]
-
-
-class State():
-    def __init__(self, character:Character):
-        self.hp = character.hp
-        self.mana = character.mana
-        self.status_states = [status.get_state() for status in character.statuses]
-        self.active_skill_states = [skill.get_state() for skill in character.active_skills]
-
 
 class CombatManager:
     def __init__(self, combatants):
@@ -29,14 +14,14 @@ class CombatManager:
 
     #get the precombat state from the perspective of the character
     #that means basic states of everyone, detailed state of yourself
-    def get_state_for(self, combatant):
-        return State(combatant)
+    def get_state_for(self, combatant) -> dict:
+        return combatant.get_state()
 
     #get overall combat state, basic
-    def get_state(self):
-        return [BasicState(combatant) for combatant in self.combatants]
+    def get_state(self) -> List[dict]:
+        return [combatant.get_basic_state() for combatant in self.combatants]
 
-    def get_current_combatant(self):
+    def get_current_combatant(self) -> Character:
         return self.combatants[self.current_combatant_index]
 
     def resolve_round(self):
@@ -54,11 +39,31 @@ class CombatManager:
 
         target, skill = self.lookup_input(input)
         skill_cast = self.get_current_combatant().casts(skill, target)
-        self.resolve_cast(caster, target, skill_cast)
+        self.resolve_cast(skill_cast)
         # TODO: I need to figure out where I return the message log
 
         # TODO: remove invalids actors
         self.current_combatant_index += 1
+
+    def lookup_input(self, turn_input):
+        caster_name = turn_input['caster_name']
+        skill_name = turn_input['skill_name']
+        target_name = turn_input['target_name']
+        target = None
+        caster = None
+        for combatant in self.combatants:
+            if combatant.name == caster_name:
+                caster = combatant
+
+            if combatant.name == target_name:
+                target = combatant
+
+        selected_skill = None
+        for skill in caster.active_skills:
+            if skill.name == skill_name:
+                selected_skill = skill
+
+        return selected_skill, target
 
 
     def resolve_cast(self, skill_cast):
@@ -87,6 +92,7 @@ class CombatManager:
             new_casts.append(new_cast)
 
         return modified_cast, new_casts
+
 
     def get_pre_listeners(self, cast):
         return cast.caster.get_pre_listeners + \

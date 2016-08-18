@@ -42,7 +42,8 @@ class Targets(Enum):
 
 
 class Skill:
-    def __init__(self, caster: Character, types):
+    def __init__(self, name:str, caster: Character, types):
+        self.name = name
         self.caster = caster
         self.types = types
 
@@ -52,15 +53,18 @@ class Skill:
     def has_type(self, type):
         return type in self.types
 
+    def to_dict(self):
+        pass
+
 
 # we're choosing not to do a big tree of inheritance because each skill should feel pretty unique
 
 # single target prototype
 class Slash(Skill):
-    def __init__(self, caster):
-        super().__init__(caster, [])
+    def __init__(self, caster: Character):
+        super().__init__('slash', caster, [])
         self.cooldown = 0
-        self.damage = SLASH_DAMAGE_MULTIPLIER * caster.damage
+        self.damage = SLASH_DAMAGE_MULTIPLIER * caster.stats.damage
         self.valid_targets = [Targets.single_enemy]
 
     def cast(self, target):
@@ -69,6 +73,9 @@ class Slash(Skill):
         damage = combat.Damage(self.caster, target, self.damage),
         mana_cost = combat.ReduceMana(self.caster, self.caster, SLASH_MANA_COST)
         return combat.SkillCast(self.caster, target, self, [damage, mana_cost])
+
+    def to_dict(self):
+        return {'name': self.name, 'cooldown': 0}
 
 
 # targetable buff prototype

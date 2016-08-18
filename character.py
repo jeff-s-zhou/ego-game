@@ -3,17 +3,26 @@
 import conditionals
 from combat import SkillCast
 
+class Stats():
+    def __init__(self, max_hp:int, max_mp:int, initiative:int, damage:int):
+        self.max_hp = max_hp
+        self.max_mp = max_mp
+        self.initiative = initiative
+        self.damage = damage
+
 class Character:
-    def __init__(self, id, name, stats, active_skills, passive_skills):
+    def __init__(self, id:str, name:str, stats:Stats):
         self.id = id
         self.name = name
         self.stats = stats
         self.hp = stats.max_hp
-        self.mana = stats.max_mana
-        self.statuses = None
+        self.mp = stats.max_mp
+        self.statuses = []
+        self.event_updates = []
+
+    def set_skills(self, active_skills, passive_skills):
         self.active_skills = active_skills
         self.passive_skills = passive_skills
-        self.event_updates = []
 
     def casts(self, skill, target):
         # legal = check_legal_arguments(skill_name, arguments)
@@ -23,8 +32,15 @@ class Character:
 
         return skill.cast(target)
 
+    def get_basic_state(self):
+        status_states = [status.to_dict() for status in self.statuses if status.is_visible()]
+        return {'hp': self.hp, 'mp': self.mp, 'status': status_states}
+
     def get_state(self):
-        return State(self)
+        status_states = [status.to_dict() for status in self.statuses if status.is_visible()]
+        active_skill_states = [skill.to_dict() for skill in self.active_skills]
+        return {'hp': self.hp, 'mp': self.mp, 'status': status_states, 'active_skills':active_skill_states}
+
 
     def get_pre_listeners(self):
         return_list = []
@@ -65,4 +81,7 @@ class Character:
         self.statuses = [item for item in self.statuses if item.is_valid() == True]
         for active_skill in self.active_skills:
             active_skill.turn_tick()
+
+
+
 
