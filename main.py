@@ -25,6 +25,7 @@ with app.app_context():
     api_manager.create_api(Character, methods=['GET', 'DELETE', 'PUT', 'POST'])
 
 room_manager = RoomManager()
+ui_manager = UIManager(socketio, room_manager)
 characters = room_manager.get_combatants()
 print()
 combat_manager = CombatManager(list(characters))
@@ -49,18 +50,15 @@ def emit_message(message):
 
 @socketio.on('connect')
 def log_connected():
+    print("connected")
     character = room_manager.get_character(request.sid)
     # TODO: on refresh/rejoin, we get the current state of the game
+    combat_manager.initialize_combat_for(character)
 
-    pre_combat_state = combat_manager.get_state_for(character)
-    emit('pre combat state', pre_combat_state, room=request.sid)
-
-    if(room_manager.all_combatants_present()):
-        combat_state = combat_manager.get_state()
-        emit('combat state', combat_state, broadcast=True)
+        emit('pre combat state', combat_state, broadcast=True)
         emit('combat start', 'start', broadcast=True)
         start_character = combat_manager.get_current_combatant()
-        emit('current_turn', start_character.name, broadcast=True)
+        emit('current turn', start_character.name, broadcast=True)
         Timer(5.0, times_up(start_character.name))
 
 
@@ -83,6 +81,9 @@ def handle_turn_input(turn_input):
 
         combat_state = combat_manager.get_state()
         emit('combat state', combat_state, broadcast=True)
+
+
+
         current_character = combat_manager.get_current_combatant()
         emit('current turn', current_character.name, broadcast=True)
         Timer(5.0, times_up(current_character.name))
@@ -93,7 +94,7 @@ def times_up(character_name):
     if success:
         current_character = combat_manager.get_current_combatant()
         socketio.emit('current turn', current_character.name, broadcast=True)
-        Timer(5.0, times_up(current_character.name))
+        #Timer(5.0, times_up(current_character.name))
 
 
 

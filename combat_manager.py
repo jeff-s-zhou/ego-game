@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 from typing import List
 
@@ -7,28 +8,30 @@ from combat import SkillCast
 class CombatManager:
     def __init__(self, combatants):
         self.combatants = combatants
+        # TODO: make sure it's sorting the right way, resolve tiebreaks fairly
+        self.combatants.sort(key=lambda combatant: combatant.stats.initiative)
         self.current_combatant_index = 0
+        self.current_round = 0
         self.global_pre_conditional_listeners = []
         self.global_post_conditional_listeners = []
         # apply passives
 
     #get the precombat state from the perspective of the character
     #that means basic states of everyone, detailed state of yourself
-    def get_state_for(self, combatant) -> dict:
-        return combatant.get_state()
+    def get_state_for(self, combatant) -> str:
+        return json.dumps(combatant.get_state())
 
     #get overall combat state, basic
-    def get_state(self) -> List[dict]:
-        return [combatant.get_basic_state() for combatant in self.combatants]
+    def get_state(self) -> str:
+        return json.dumps([combatant.get_basic_state() for combatant in self.combatants])
 
     def get_current_combatant(self) -> Character:
         return self.combatants[self.current_combatant_index]
 
     def resolve_round(self):
-        #TODO: make sure it's sorting the right way, resolve tiebreaks fairly
 
-        self.combatants.sort(key=lambda combatant: combatant.stats.initiative)
         #TODO: find a way to change initiative in the same round
+        pass
 
     def turn_time_up(self):
         self.current_combatant_index += 1
