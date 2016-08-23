@@ -8,42 +8,8 @@ var Grid = require('react-bootstrap/lib/Grid');
 var Row = require('react-bootstrap/lib/Row');
 var Col = require('react-bootstrap/lib/Col');
 
-var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port);
-socket.on('connect', function(){console.log("connected");});
+var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
 
-//chat
-socket.on('chat message', function(msg){
-    JQuery('#messages').append(JQuery('<li>').text(msg));
-});
-
-//state for just the character at start
-socket.on('my pre combat state', function(my_pre_combat_state) {
-    //populate my skill info, my own info
-    console.log(my_pre_combat_state)
-});
-
-//combat state for all characters at start
-socket.on('pre combat state', function(pre_combat_state){
-    //populate all other agents
-    console.log(pre_combat_state)
-});
-
-socket.on('current turn', function(character_name){
-    //indicate that it's the current turn of character_name
-    console.log(character_name)
-});
-
-//state for just the character
-socket.on('my combat state', function(my_combat_state) {
-    //populate my skill info, my own info
-    console.log(my_combat_state)
-});
-
-//state for all characters
-socket.on('combat state', function(combat_state) {
-    //populate my skill info, my own info
-    console.log(combat_state)
-});
 
 module.exports = Home = React.createClass({
     loadPlayersFromServer: function(playerId) {
@@ -63,6 +29,34 @@ module.exports = Home = React.createClass({
 
     getInitialState() {
         return {}
+    },
+
+    componentDidMount() {
+        socket.on('connect', function(){console.log("connected");});
+
+        //chat
+        socket.on('chat message', function(msg){
+            JQuery('#messages').append(JQuery('<li>').text(msg));
+        });
+
+        socket.on('combat start', function(start){
+            console.log(start)
+        });
+
+
+        socket.on('current turn', function(character_name){
+            console.log(character_name)
+        });
+
+        //state for just the character
+        socket.on('my combat state', function(my_combat_state) {
+            console.log(my_combat_state)
+        });
+
+        //state for all characters
+        socket.on('general combat state', function(combat_state) {
+            console.log(combat_state)
+        });
     },
 
     render: function() {
@@ -112,7 +106,6 @@ var Status = React.createClass({
 });
 
 var Display = React.createClass({
-
     render: function() {
         return (
             <div id="combat">
