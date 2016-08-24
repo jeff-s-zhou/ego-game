@@ -139,7 +139,10 @@ module.exports = class Home extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            character_state: null, combatants_state: [], messages: [], skills: []
+            character_state: { name: '', id: 0, hp: 0, mana: 0, active_skills: [], statuses: [] },
+            combatants_state: [],
+            messages: [],
+            skills: {}
         };
     }
 
@@ -151,7 +154,11 @@ module.exports = class Home extends React.Component {
             dataType: "json",
             cache: false,
             success: data => {
-                this.setState({ skills: data.objects });
+                var my_skills = {};
+                data.objects.map(skill => {
+                    my_skills[skill.id] = skill;
+                });
+                this.setState({ skills: my_skills });
             },
             error: (xhr, status, err) => {
                 console.error("api/ego", status, err.toString());
@@ -182,13 +189,14 @@ module.exports = class Home extends React.Component {
         //state for just the character
         socket.on('my combat state', my_combat_state => {
             this.setState({ character_state: my_combat_state });
+            console.log(this.state.character_state.active_skills[0].cooldown);
             console.log(this.state.character_state);
         });
 
         //state for all characters
         socket.on('general combat state', combat_state => {
-            //this.setState({combatants_state:combat_state});
-            //console.log(this.state.combatants_state);
+            /*this.setState({combatants_state:combat_state});
+            console.log(this.state.combatants_state);*/
         });
     }
 
@@ -329,14 +337,21 @@ class Display extends React.Component {
 
 class Skills extends React.Component {
     render() {
-        var my_skills = this.props.skills.map(skill => {
-            console.log(skill);
+        var result_list = [];
+
+        for (var key in this.props.skills) {
+            var skill = this.props.skills[key];
+            result_list.push(skill);
+        }
+
+        var my_skills = result_list.map(skill => {
             return React.createElement(
                 'div',
                 { key: skill.id },
                 skill.name,
                 React.createElement('br', null),
-                skill.description
+                skill.description,
+                skill.cooldown
             );
         });
 
