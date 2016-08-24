@@ -10,56 +10,65 @@ var Col = require('react-bootstrap/lib/Col');
 
 var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
 
+module.exports = class Home extends React.Component{
 
-module.exports = Home = React.createClass({
-    loadPlayersFromServer: function(playerId) {
+    constructor(props) {
+        super(props);
+        this.state =  {
+            character_state:null, combatants_state:[], messages:[], skills:[]
+        }
+    }
+
+    //TODO: get actual skill based on character id, and not spoofing
+    loadSkillsFromServer() {
         JQuery.ajax({
-            url: ("/api/player/" + playerId),
+            url: ("/api/skill"),
             contentType: "application/json",
             dataType: "json",
             cache: false,
-            success: function(data) {
-                this.setState({hp: data.hp});
-            }.bind(this),
-            error: function(xhr, status, err) {
+            success: (data) => {
+                this.setState({skills: data.objects});
+            },
+            error: (xhr, status, err) => {
                 console.error("api/ego", status, err.toString());
-            }.bind(this)
+            }
         });
-    },
-
-    getInitialState() {
-        return {}
-    },
+    }
 
     componentDidMount() {
-        socket.on('connect', function(){console.log("connected");});
+        this.loadSkillsFromServer();
+
+        socket.on('connect', () => {console.log("connected");});
 
         //chat
-        socket.on('chat message', function(msg){
+        socket.on('chat message', (msg) => {
             JQuery('#messages').append(JQuery('<li>').text(msg));
         });
 
-        socket.on('combat start', function(start){
+        socket.on('combat start', (start) => {
             console.log(start)
         });
 
 
-        socket.on('current turn', function(character_name){
-            console.log(character_name)
+        socket.on('current turn', (character_name) => {
+            //console.log(character_name)
         });
 
         //state for just the character
-        socket.on('my combat state', function(my_combat_state) {
-            console.log(my_combat_state)
+        socket.on('my combat state', (my_combat_state) => {
+            this.setState({character_state:my_combat_state});
+            console.log(this.state.character_state);
+
         });
 
         //state for all characters
-        socket.on('general combat state', function(combat_state) {
-            console.log(combat_state)
+        socket.on('general combat state', (combat_state) => {
+            //this.setState({combatants_state:combat_state});
+            //console.log(this.state.combatants_state);
         });
-    },
+    }
 
-    render: function() {
+    render() {
     return (
         <Grid>
             <Row>
@@ -74,7 +83,7 @@ module.exports = Home = React.createClass({
                     </Row>
                     <Row>
                         <Col lg={8}>
-                            <Skills/>
+                            <Skills skills={this.state.skills}/>
                         </Col>
                         <Col lg={4}>
                             <Targets/>
@@ -86,12 +95,12 @@ module.exports = Home = React.createClass({
                 </Col>
             </Row>
         </Grid>
-    );
+    )
   }
-});
+}
 
-var Status = React.createClass({
-   render: function() {
+class Status extends React.Component {
+   render() {
        return (
            <div>
                <h1>Status</h1>
@@ -103,10 +112,10 @@ var Status = React.createClass({
            </div>
        )
    }
-});
+}
 
-var Display = React.createClass({
-    render: function() {
+class Display extends React.Component{
+    render() {
         return (
             <div id="combat">
                 <h1>Combat</h1>
@@ -128,31 +137,45 @@ var Display = React.createClass({
             </div>
         );
     }
-});
+}
 
-var Skills = React.createClass({
-    render: function() {
+class Skills extends React.Component {
+    render() {
+        var my_skills = this.props.skills.map((skill) => {
+            return (
+                <div key={skill.id}>
+                    {skill.name}
+                    <br />
+                    {skill.description}
+                </div>
+            );
+
+        });
+
         return (
-            <h1>Skills</h1>
+            <div>
+                <h1>Skills</h1>
+                {my_skills}
+            </div>
         );
     }
-});
+}
 
-var Targets = React.createClass({
-    render: function() {
+class Targets extends React.Component {
+    render() {
         return (
             <h1>Targets</h1>
         );
     }
-});
+}
 
-var ChatForm = React.createClass({
-    handleSubmit: function(e) {
+class ChatForm extends React.Component {
+    handleSubmit(e) {
         console.log("handling Submit");
         socket.emit('chat message', JQuery('#m').val());
         JQuery('#m').val('');
-    },
-    render: function() {
+    }
+    render() {
         return (
         <div className="Home">
         <ul id="messages"></ul>
@@ -162,4 +185,4 @@ var ChatForm = React.createClass({
         </div>
         );
     }
-});
+}

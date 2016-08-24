@@ -10,6 +10,8 @@ var IndexRoute = require('react-router/lib/IndexRoute');
 var Link = require('react-router/lib/Link');
 var JQuery = require('jquery');
 
+var BrowserHistory = require('react-router/lib/browserHistory');
+
 //react bootstrap
 var Grid = require('react-bootstrap/lib/Grid');
 
@@ -20,18 +22,18 @@ var LinkContainer = require('react-router-bootstrap/lib/LinkContainer');
 
 var Combat = require('./combat');
 
-var App = React.createClass({
-  render: function() {
+class App extends React.Component{
+  render() {
     return (
       <Grid>
                 {this.props.children}
       </Grid>
     );
   }
-});
+}
 
 ReactDOM.render((
-        <Router>
+        <Router history={BrowserHistory}>
             <Route path="/" component={App}>
                 <IndexRoute component={Combat} />
             </Route>
