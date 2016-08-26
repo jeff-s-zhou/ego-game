@@ -140,7 +140,8 @@ module.exports = class Home extends React.Component {
         super(props);
         this.state = {
             character_state: { name: '', id: 0, hp: 0, mana: 0, active_skills: [], statuses: [] },
-            combatants_state: [],
+            allies_state: [],
+            enemies_state: [],
             messages: [],
             skills: {}
         };
@@ -198,14 +199,15 @@ module.exports = class Home extends React.Component {
         });
 
         //state for my team
-        socket.on('team state', team_state => {
-            //this.setState({combatants_state:combat_state});
-            console.log(team_state);
+        socket.on('allies state', allies_state => {
+            this.setState({ allies_state: allies_state });
+            console.log(allies_state);
         });
 
         //state for enemies
-        socket.on('enemy state', enemy_state => {
-            console.log(enemy_state);
+        socket.on('enemies state', enemies_state => {
+            this.setState({ enemies_state: enemies_state });
+            console.log(enemies_state);
         });
     }
 
@@ -219,7 +221,7 @@ module.exports = class Home extends React.Component {
                 React.createElement(
                     Col,
                     { lg: 2 },
-                    React.createElement(Status, null)
+                    React.createElement(States, { my_state: this.state.character_state, allies_state: this.state.allies_state })
                 ),
                 React.createElement(
                     Col,
@@ -244,7 +246,7 @@ module.exports = class Home extends React.Component {
                         React.createElement(
                             Col,
                             { lg: 4 },
-                            React.createElement(Targets, null)
+                            React.createElement(Targets, { enemies_state: this.state.enemies_state })
                         )
                     )
                 ),
@@ -258,15 +260,19 @@ module.exports = class Home extends React.Component {
     }
 };
 
-class Status extends React.Component {
+class States extends React.Component {
     render() {
+        var allies_state = this.props.allies_state.map(ally_state => {
+            return React.createElement(State, { state: ally_state });
+        });
+
         return React.createElement(
             'div',
             null,
             React.createElement(
                 'h1',
                 null,
-                'Status'
+                'Team'
             ),
             React.createElement(
                 'ul',
@@ -274,72 +280,29 @@ class Status extends React.Component {
                 React.createElement(
                     'li',
                     null,
-                    'Larken'
+                    this.props.my_state.name,
+                    React.createElement('br', null),
+                    this.props.my_state.hp,
+                    React.createElement('br', null),
+                    this.props.my_state.mp,
+                    React.createElement('br', null)
                 ),
-                React.createElement(
-                    'li',
-                    null,
-                    'Ilfantz'
-                ),
-                React.createElement(
-                    'li',
-                    null,
-                    'Vimilikirti'
-                )
+                allies_state
             )
         );
     }
 }
 
-class Display extends React.Component {
+class State extends React.Component {
     render() {
         return React.createElement(
-            'div',
-            { id: 'combat' },
-            React.createElement(
-                'h1',
-                null,
-                'Combat'
-            ),
-            React.createElement(
-                'ul',
-                null,
-                React.createElement(
-                    'li',
-                    null,
-                    'Millia begins FOCUSING.'
-                ),
-                React.createElement(
-                    'li',
-                    null,
-                    'Khazarak uses MEZZO SLASH on Ilfantz, dealing 12 DAMAGE.'
-                ),
-                React.createElement(
-                    'li',
-                    null,
-                    'Ilfantz is heavily wounded!'
-                ),
-                React.createElement(
-                    'li',
-                    null,
-                    'Vimilikirti uses SHADOW STUTTER, dealing 15 DAMAGE to ALL ENEMIES!'
-                ),
-                React.createElement(
-                    'li',
-                    null,
-                    'Vimilikirti is now EVASIVE for 2 TURNS.'
-                ),
-                React.createElement(
-                    'li',
-                    null,
-                    'YOU are going!'
-                ),
-                React.createElement(
-                    'li',
-                    null,
-                    'NEXT: Ilfantz, Sinistr, Mazara, Verit'
-                )
-            )
+            'li',
+            null,
+            this.props.state.name,
+            React.createElement('br', null),
+            this.props.state.hp,
+            React.createElement('br', null),
+            this.props.state.mp
         );
     }
 }
@@ -412,6 +375,59 @@ class Targets extends React.Component {
             'h1',
             null,
             'Targets'
+        );
+    }
+}
+
+class Display extends React.Component {
+    render() {
+        return React.createElement(
+            'div',
+            { id: 'combat' },
+            React.createElement(
+                'h1',
+                null,
+                'Combat'
+            ),
+            React.createElement(
+                'ul',
+                null,
+                React.createElement(
+                    'li',
+                    null,
+                    'Millia begins FOCUSING.'
+                ),
+                React.createElement(
+                    'li',
+                    null,
+                    'Khazarak uses MEZZO SLASH on Ilfantz, dealing 12 DAMAGE.'
+                ),
+                React.createElement(
+                    'li',
+                    null,
+                    'Ilfantz is heavily wounded!'
+                ),
+                React.createElement(
+                    'li',
+                    null,
+                    'Vimilikirti uses SHADOW STUTTER, dealing 15 DAMAGE to ALL ENEMIES!'
+                ),
+                React.createElement(
+                    'li',
+                    null,
+                    'Vimilikirti is now EVASIVE for 2 TURNS.'
+                ),
+                React.createElement(
+                    'li',
+                    null,
+                    'YOU are going!'
+                ),
+                React.createElement(
+                    'li',
+                    null,
+                    'NEXT: Ilfantz, Sinistr, Mazara, Verit'
+                )
+            )
         );
     }
 }

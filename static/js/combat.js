@@ -82,9 +82,9 @@ module.exports = class Home extends React.Component{
         });
 
         //state for enemies
-        socket.on('enemy state', (enemy_state) => {
-            this.setState({enemies_state:enemies_State});
-            console.log(enemy_state);
+        socket.on('enemies state', (enemies_state) => {
+            this.setState({enemies_state:enemies_state});
+            console.log(enemies_state);
         });
     }
 
@@ -121,15 +121,22 @@ module.exports = class Home extends React.Component{
 
 class States extends React.Component {
    render() {
-        var allies_state=this.props.allies_state.map((ally) => {
-            return(<State/>)
+        var allies_state=this.props.allies_state.map((ally_state) => {
+            return(<State state={ally_state} />)
         })
 
        return (
            <div>
                <h1>Team</h1>
                <ul>
-                   <li>Larken</li>
+                   <li>
+                   {this.props.my_state.name}
+                   < br />
+                   {this.props.my_state.hp}
+                   < br />
+                   {this.props.my_state.mp}
+                   < br />
+                   </li>
                    {allies_state}
                </ul>
            </div>
@@ -138,7 +145,17 @@ class States extends React.Component {
 }
 
 class State extends React.Component {
-
+    render() {
+        return (
+            <li>
+                {this.props.state.name}
+                < br />
+                {this.props.state.hp}
+                < br />
+                {this.props.state.mp}
+            </li>
+        )
+    }
 }
 
 
