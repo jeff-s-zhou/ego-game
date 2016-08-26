@@ -16,7 +16,8 @@ module.exports = class Home extends React.Component{
         super(props);
         this.state =  {
             character_state:{name:'', id:0, hp:0, mana:0, active_skills:[], statuses:[]},
-            combatants_state:[],
+            allies_state:[],
+            enemies_state:[],
             messages:[],
             skills:{}
         }
@@ -66,15 +67,24 @@ module.exports = class Home extends React.Component{
         //state for just the character
         socket.on('my combat state', (my_combat_state) => {
             this.setState({character_state:my_combat_state});
-            console.log(this.state.character_state.active_skills[0].cooldown);
-            console.log(this.state.character_state);
 
+            var old_skills = this.state.skills;
+            my_combat_state.active_skills.map((skill) => {
+                old_skills[skill.id].cooldown = skill.cooldown
+            });
+            this.setState({skills: old_skills});
         });
 
-        //state for all characters
-        socket.on('general combat state', (combat_state) => {
-            /*this.setState({combatants_state:combat_state});
-            console.log(this.state.combatants_state);*/
+        //state for my team
+        socket.on('allies state', (allies_state) => {
+            this.setState({allies_state:allies_state});
+            console.log(allies_state);
+        });
+
+        //state for enemies
+        socket.on('enemy state', (enemy_state) => {
+            this.setState({enemies_state:enemies_State});
+            console.log(enemy_state);
         });
     }
 
@@ -83,7 +93,7 @@ module.exports = class Home extends React.Component{
         <Grid>
             <Row>
                 <Col lg={2}>
-                    <Status />
+                    <States my_state={this.state.character_state} allies_state={this.state.allies_state}/>
                 </Col>
                 <Col lg={7}>
                     <Row>
@@ -93,10 +103,10 @@ module.exports = class Home extends React.Component{
                     </Row>
                     <Row>
                         <Col lg={8}>
-                            <Skills skills={this.state.skills}/>
+                            <Skills skills={this.state.skills} caster_id={this.state.character_state.id}/>
                         </Col>
                         <Col lg={4}>
-                            <Targets/>
+                            <Targets enemies_state={this.state.enemies_state}/>
                         </Col>
                     </Row>
                 </Col>
@@ -109,20 +119,92 @@ module.exports = class Home extends React.Component{
   }
 }
 
-class Status extends React.Component {
+class States extends React.Component {
    render() {
+        var allies_state=this.props.allies_state.map((ally) => {
+            return(<State/>)
+        })
+
        return (
            <div>
-               <h1>Status</h1>
+               <h1>Team</h1>
                <ul>
                    <li>Larken</li>
-                   <li>Ilfantz</li>
-                   <li>Vimilikirti</li>
+                   {allies_state}
                </ul>
            </div>
        )
    }
 }
+
+class State extends React.Component {
+
+}
+
+
+class Skills extends React.Component {
+    render() {
+        var result_list = [];
+
+        for(var key in this.props.skills){
+            var skill = this.props.skills[key];
+            result_list.push(skill)
+        }
+
+        var my_skills = result_list.map((skill) => {
+            return (<Skill key={skill.id} skill={skill} caster_id={this.props.caster_id}/>)
+        });
+
+        return (
+            <div>
+                <h1>Skills</h1>
+                {my_skills}
+            </div>
+        );
+    }
+}
+
+class Skill extends React.Component {
+    handleSubmit(e) {
+        console.log("handle submit's this is " + this);
+        var caster_id = 3;
+        var skill_id = 8
+        var target_id = 2;
+        socket.emit("turn input", {caster_id: caster_id, skill_id: skill_id, target_id: target_id});
+        console.log("handling submit")
+    }
+
+    render() {
+        var skill_activate;
+        if(this.props.skill.valid) {
+            skill_activate = <div onClick={this.handleSubmit.bind(this)}>Click here</div>
+        }
+        else {
+            skill_activate = 'ON COOLDOWN"'
+        }
+
+        return (
+            <div>
+                {this.props.skill.name}
+                <br />
+                {this.props.skill.description}
+                <br />
+                {this.props.skill.cooldown}
+                <br />
+                {skill_activate}
+            </div>
+        )
+    }
+}
+
+class Targets extends React.Component {
+    render() {
+        return (
+            <h1>Targets</h1>
+        );
+    }
+}
+
 
 class Display extends React.Component{
     render() {
@@ -145,44 +227,6 @@ class Display extends React.Component{
                     <li>NEXT: Ilfantz, Sinistr, Mazara, Verit</li>
                 </ul>
             </div>
-        );
-    }
-}
-
-class Skills extends React.Component {
-    render() {
-        var result_list = [];
-
-        for(var key in this.props.skills){
-            var skill = this.props.skills[key];
-            result_list.push(skill)
-        }
-
-        var my_skills = result_list.map((skill) => {
-            return (
-                <div key={skill.id}>
-                    {skill.name}
-                    <br />
-                    {skill.description}
-                    {skill.cooldown}
-                </div>
-            )
-        });
-
-        return (
-            <div>
-                <h1>Skills</h1>
-                {my_skills}
-
-            </div>
-        );
-    }
-}
-
-class Targets extends React.Component {
-    render() {
-        return (
-            <h1>Targets</h1>
         );
     }
 }

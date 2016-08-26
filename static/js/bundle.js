@@ -189,14 +189,23 @@ module.exports = class Home extends React.Component {
         //state for just the character
         socket.on('my combat state', my_combat_state => {
             this.setState({ character_state: my_combat_state });
-            console.log(this.state.character_state.active_skills[0].cooldown);
-            console.log(this.state.character_state);
+
+            var old_skills = this.state.skills;
+            my_combat_state.active_skills.map(skill => {
+                old_skills[skill.id].cooldown = skill.cooldown;
+            });
+            this.setState({ skills: old_skills });
         });
 
-        //state for all characters
-        socket.on('general combat state', combat_state => {
-            /*this.setState({combatants_state:combat_state});
-            console.log(this.state.combatants_state);*/
+        //state for my team
+        socket.on('team state', team_state => {
+            //this.setState({combatants_state:combat_state});
+            console.log(team_state);
+        });
+
+        //state for enemies
+        socket.on('enemy state', enemy_state => {
+            console.log(enemy_state);
         });
     }
 
@@ -230,7 +239,7 @@ module.exports = class Home extends React.Component {
                         React.createElement(
                             Col,
                             { lg: 8 },
-                            React.createElement(Skills, { skills: this.state.skills })
+                            React.createElement(Skills, { skills: this.state.skills, caster_id: this.state.character_state.id })
                         ),
                         React.createElement(
                             Col,
@@ -345,14 +354,7 @@ class Skills extends React.Component {
         }
 
         var my_skills = result_list.map(skill => {
-            return React.createElement(
-                'div',
-                { key: skill.id },
-                skill.name,
-                React.createElement('br', null),
-                skill.description,
-                skill.cooldown
-            );
+            return React.createElement(Skill, { key: skill.id, skill: skill, caster_id: this.props.caster_id });
         });
 
         return React.createElement(
@@ -364,6 +366,42 @@ class Skills extends React.Component {
                 'Skills'
             ),
             my_skills
+        );
+    }
+}
+
+class Skill extends React.Component {
+    handleSubmit(e) {
+        console.log("handle submit's this is " + this);
+        var caster_id = 3;
+        var skill_id = 8;
+        var target_id = 2;
+        socket.emit("turn input", { caster_id: caster_id, skill_id: skill_id, target_id: target_id });
+        console.log("handling submit");
+    }
+
+    render() {
+        var skill_activate;
+        if (this.props.skill.valid) {
+            skill_activate = React.createElement(
+                'div',
+                { onClick: this.handleSubmit.bind(this) },
+                'Click here'
+            );
+        } else {
+            skill_activate = 'ON COOLDOWN"';
+        }
+
+        return React.createElement(
+            'div',
+            null,
+            this.props.skill.name,
+            React.createElement('br', null),
+            this.props.skill.description,
+            React.createElement('br', null),
+            this.props.skill.cooldown,
+            React.createElement('br', null),
+            skill_activate
         );
     }
 }
