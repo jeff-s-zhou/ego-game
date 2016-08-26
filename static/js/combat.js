@@ -215,9 +215,27 @@ class Skill extends React.Component {
 }
 
 class Targets extends React.Component {
+
+    render() {
+        var targets = this.props.enemies_state.map((enemy) => {
+            return(<Target enemy={enemy} key={enemy.id}/>)
+        })
+
+        return (
+            <div>
+            <h1>Targets</h1>
+            {targets}
+            </div>
+        )
+    }
+}
+
+class Target extends React.Component {
     render() {
         return (
-            <h1>Targets</h1>
+            <li>
+                {this.props.enemy.name}
+            </li>
         );
     }
 }

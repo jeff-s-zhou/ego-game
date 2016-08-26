@@ -370,11 +370,31 @@ class Skill extends React.Component {
 }
 
 class Targets extends React.Component {
+
+    render() {
+        var targets = this.props.enemies_state.map(enemy => {
+            return React.createElement(Target, { enemy: enemy, key: enemy.id });
+        });
+
+        return React.createElement(
+            'div',
+            null,
+            React.createElement(
+                'h1',
+                null,
+                'Targets'
+            ),
+            targets
+        );
+    }
+}
+
+class Target extends React.Component {
     render() {
         return React.createElement(
-            'h1',
+            'li',
             null,
-            'Targets'
+            this.props.enemy.name
         );
     }
 }
