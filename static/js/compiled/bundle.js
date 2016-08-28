@@ -228,6 +228,10 @@ var _mobx = require("mobx");
 
 var _mobxReact = require("mobx-react");
 
+var _stores = require("./stores");
+
+var _transport_layer = require("./transport_layer");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -264,75 +268,14 @@ var Home = (0, _mobxReact.observer)(_class = function (_React$Component) {
         return _possibleConstructorReturn(this, (Home.__proto__ || Object.getPrototypeOf(Home)).call(this, props));
     }
 
-    //TODO: get actual skill based on character id, and not spoofing
-
-
     _createClass(Home, [{
-        key: "loadSkillsFromServer",
-        value: function loadSkillsFromServer() {
-            JQuery.ajax({
-                url: "/api/skill",
-                contentType: "application/json",
-                dataType: "json",
-                cache: false,
-                success: function success(data) {
-                    var my_skills = {};
-                    data.objects.map(function (skill) {
-                        my_skills[skill.id] = skill;
-                    });
-                    app_state.skills = my_skills;
-                },
-                error: function error(xhr, status, err) {
-                    console.error("api/ego", status, err.toString());
-                }
-            });
-        }
-    }, {
         key: "componentDidMount",
         value: function componentDidMount() {
-            this.loadSkillsFromServer();
-
-            socket.on('connect', function () {
-                console.log("connected");
-            });
-
             //chat
             socket.on('chat message', function (msg) {
                 JQuery('#messages').append(JQuery('<li>').text(msg));
             });
-
-            socket.on('current turn', function (character_name) {
-                //console.log(character_name)
-            });
-
-            //state for just the character
-            socket.on('my combat state', function (my_combat_state) {
-                //this.setState({character_state:my_combat_state});
-                app_state.character_state = my_combat_state;
-
-                var old_skills = app_state.skills;
-                my_combat_state.active_skills.map(function (skill) {
-                    old_skills[skill.id].cooldown = skill.cooldown;
-                });
-                //this.setState({skills: old_skills});
-                app_state.skills = old_skills;
-            });
-
-            //state for my team
-            socket.on('allies state', function (allies_state) {
-                //this.setState({allies_state:allies_state});
-                app_state.allies_state = allies_state;
-            });
-
-            //state for enemies
-            socket.on('enemies state', function (enemies_state) {
-                //this.setState({enemies_state:enemies_state});
-                app_state.enemies_state = enemies_state;
-            });
         }
-
-        //<Allies my_state={this.state.character_state} allies_state={this.state.allies_state}/>
-
     }, {
         key: "render",
         value: function render() {
@@ -487,7 +430,7 @@ var ChatForm = (0, _mobxReact.observer)(_class3 = function (_React$Component3) {
 
 module.exports = Home;
 
-},{"./allies":3,"./skills":368,"./targets":369,"jquery":6,"mobx":8,"mobx-react":7,"react":320,"react-bootstrap/lib/Col":9,"react-bootstrap/lib/Grid":10,"react-bootstrap/lib/Row":11,"socket.io-client":321}],5:[function(require,module,exports){
+},{"./allies":3,"./skills":368,"./stores":369,"./targets":370,"./transport_layer":371,"jquery":6,"mobx":8,"mobx-react":7,"react":320,"react-bootstrap/lib/Col":9,"react-bootstrap/lib/Grid":10,"react-bootstrap/lib/Row":11,"socket.io-client":321}],5:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -47128,9 +47071,6 @@ var Skill = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
     _createClass(Skill, [{
         key: "handleSubmit",
         value: function handleSubmit(e) {
-            var caster_id = this.props.caster_id;
-            var skill_id = this.props.skill.id;
-            var target_id = 2;
             //socket.emit("turn input", {caster_id: caster_id, skill_id: skill_id, target_id: target_id});
             console.log("handling submit");
         }
@@ -47168,6 +47108,328 @@ var Skill = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
 module.exports = Skills;
 
 },{"mobx-react":7,"react":320}],369:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.TargetsStore = exports.SkillsStore = exports.MyCharacterStore = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _desc2, _value2, _class3, _descriptor7, _descriptor8, _desc3, _value3, _class5, _descriptor9, _descriptor10, _descriptor11, _descriptor12, _desc4, _value4, _class7, _descriptor13, _descriptor14, _desc5, _value5, _class9, _descriptor15, _descriptor16, _descriptor17; /**
+                                                                                                                                                                                                                                                                                                                                                                                         * Created by Jeffrey on 8/27/2016.
+                                                                                                                                                                                                                                                                                                                                                                                         */
+
+var _mobx = require("mobx");
+
+function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+        enumerable: descriptor.enumerable,
+        configurable: descriptor.configurable,
+        writable: descriptor.writable,
+        value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+}
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+        desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+        desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+        return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+        desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+        desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+        Object['define' + 'Property'](target, property, desc);
+        desc = null;
+    }
+
+    return desc;
+}
+
+function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+}
+
+var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
+    function MyCharacterStore(transport_layer, active_skills) {
+        var _this = this;
+
+        _classCallCheck(this, MyCharacterStore);
+
+        _initDefineProp(this, "name", _descriptor, this);
+
+        _initDefineProp(this, "id", _descriptor2, this);
+
+        _initDefineProp(this, "hp", _descriptor3, this);
+
+        _initDefineProp(this, "mana", _descriptor4, this);
+
+        _initDefineProp(this, "active_skills", _descriptor5, this);
+
+        _initDefineProp(this, "statuses", _descriptor6, this);
+
+        this.transport_layer = transport_layer;
+        this.transport_layer.update_my_combat_state(function (combat_state) {
+            return _this.update_my_character(combat_state);
+        });
+        this.name = "";
+        this.id = 0;
+        this.hp = 0;
+        this.mana = 0;
+        this.active_skills = active_skills;
+        this.statuses = [];
+    }
+
+    _createClass(MyCharacterStore, [{
+        key: "update_my_character",
+        value: function update_my_character(state) {
+            this.hp = state.hp;
+            this.mana = state.mana;
+            this.active_skills.set_skills(state.skills);
+            //TODO: statuses
+        }
+    }, {
+        key: "load_my_character",
+        value: function load_my_character() {
+            var _this2 = this;
+
+            this.transport_layer.fetch_my_character().then(function (fetched_character) {
+                _this2.name = fetched_character.name;
+                _this2.id = fetched_character.id;
+                _this2.hp = fetched_character.hp;
+                _this2.mana = fetched_character.mana;
+                _this2.active_skills.update_skills(fetched_character.active_skills);
+                //this.statuses.set_statuses(fetched_character.statuses);
+            });
+        }
+    }]);
+
+    return MyCharacterStore;
+}(), (_descriptor = _applyDecoratedDescriptor(_class.prototype, "name", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "id", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "hp", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, "mana", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "active_skills", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, "statuses", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+})), _class);
+var SkillsStore = exports.SkillsStore = (_class3 = function () {
+    function SkillsStore(transport_layer) {
+        _classCallCheck(this, SkillsStore);
+
+        _initDefineProp(this, "skills", _descriptor7, this);
+
+        _initDefineProp(this, "selected", _descriptor8, this);
+
+        this.transport_layer = transport_layer;
+        this.skills = {};
+        this.selected = null;
+    }
+
+    _createClass(SkillsStore, [{
+        key: "load_skills",
+        value: function load_skills(skills) {
+            var _this3 = this;
+
+            skills.map(function (skill) {
+                _this3.skills[skill.id] = Skill(_this3, skill);
+            });
+        }
+    }, {
+        key: "update_skills",
+        value: function update_skills(skills) {
+            var _this4 = this;
+
+            skills.map(function (skill) {
+                _this4.skills[skill.id].update(skill);
+            });
+        }
+    }]);
+
+    return SkillsStore;
+}(), (_descriptor7 = _applyDecoratedDescriptor(_class3.prototype, "skills", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor8 = _applyDecoratedDescriptor(_class3.prototype, "selected", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+})), _class3);
+var Skill = (_class5 = function () {
+    function Skill(store, skill) {
+        _classCallCheck(this, Skill);
+
+        _initDefineProp(this, "id", _descriptor9, this);
+
+        _initDefineProp(this, "name", _descriptor10, this);
+
+        _initDefineProp(this, "condition", _descriptor11, this);
+
+        _initDefineProp(this, "valid", _descriptor12, this);
+
+        this.store = store;
+        this.id = skill.id;
+        this.name = skill.name;
+        this.condition = skill.condition;
+        this.valid = skill.valid;
+    }
+
+    _createClass(Skill, [{
+        key: "update",
+        value: function update(skill) {
+            this.id = skill.id;
+            this.name = skill.name;
+            this.condition = skill.condition;
+            this.valid = skill.valid;
+        }
+    }, {
+        key: "select",
+        value: function select() {
+            this.store.selected = this;
+        }
+    }]);
+
+    return Skill;
+}(), (_descriptor9 = _applyDecoratedDescriptor(_class5.prototype, "id", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor10 = _applyDecoratedDescriptor(_class5.prototype, "name", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor11 = _applyDecoratedDescriptor(_class5.prototype, "condition", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor12 = _applyDecoratedDescriptor(_class5.prototype, "valid", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+})), _class5);
+
+/*
+    statuses:[
+        status:
+            type:
+            name:
+            duration OR cooldown:
+    ]
+*/
+
+var TargetsStore = exports.TargetsStore = (_class7 = function () {
+    function TargetsStore(transport_layer) {
+        _classCallCheck(this, TargetsStore);
+
+        _initDefineProp(this, "targets", _descriptor13, this);
+
+        _initDefineProp(this, "selected", _descriptor14, this);
+
+        this.transport_layer = transport_layer;
+        this.targets = {};
+        this.selected = null;
+
+        this.disposer = autorun(function () {
+            return console.log();
+        });
+    }
+
+    _createClass(TargetsStore, [{
+        key: "load_targets",
+        value: function load_targets(targets) {
+            var _this5 = this;
+
+            targets.map(function (target) {
+                _this5.targets[target.id] = Target(_this5, target);
+            });
+        }
+    }, {
+        key: "update_targets",
+        value: function update_targets(targets) {
+            var _this6 = this;
+
+            targets.map(function (target) {
+                _this6.targets[target.id].update(target);
+            });
+        }
+    }]);
+
+    return TargetsStore;
+}(), (_descriptor13 = _applyDecoratedDescriptor(_class7.prototype, "targets", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor14 = _applyDecoratedDescriptor(_class7.prototype, "selected", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+})), _class7);
+var Target = (_class9 = function () {
+    function Target(store, target) {
+        _classCallCheck(this, Target);
+
+        _initDefineProp(this, "id", _descriptor15, this);
+
+        _initDefineProp(this, "name", _descriptor16, this);
+
+        _initDefineProp(this, "statuses", _descriptor17, this);
+
+        this.store = store;
+        this.id = target.id;
+        this.name = target.name;
+        this.statuses = target.statuses;
+    }
+
+    _createClass(Target, [{
+        key: "update",
+        value: function update(target) {
+            this.id = target.id;
+            this.name = target.name;
+            this.statuses = target.statuses;
+        }
+    }, {
+        key: "select",
+        value: function select(caster, skill) {
+            this.store.selected = this;
+            this.store.transport_layer.handle_turn_input(caster.id, skill.id, this.id);
+        }
+    }]);
+
+    return Target;
+}(), (_descriptor15 = _applyDecoratedDescriptor(_class9.prototype, "id", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor16 = _applyDecoratedDescriptor(_class9.prototype, "name", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor17 = _applyDecoratedDescriptor(_class9.prototype, "statuses", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+})), _class9);
+
+},{"mobx":8}],370:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -47247,4 +47509,95 @@ var Target = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
 
 module.exports = Targets;
 
-},{"mobx-react":7,"react":320}]},{},[5]);
+},{"mobx-react":7,"react":320}],371:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Created by Jeffrey on 8/27/2016.
+ */
+
+/*
+
+    //TODO: get actual skill based on character id, and not spoofing
+    loadSkillsFromServer() {
+        JQuery.ajax({
+            url: ("/api/skill"),
+            contentType: "application/json",
+            dataType: "json",
+            cache: false,
+            success: (data) => {
+                var my_skills = {};
+                data.objects.map((skill) => {
+                    my_skills[skill.id] = skill
+                });
+                app_state.skills = my_skills;
+            },
+            error: (xhr, status, err) => {
+                console.error("api/ego", status, err.toString());
+            }
+        });
+    }
+ */
+
+var TransportLayer = exports.TransportLayer = function () {
+    function TransportLayer() {
+        var _this = this;
+
+        _classCallCheck(this, TransportLayer);
+
+        var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
+
+        this.update_my_combat_state = function (my_combat_state) {
+            return null;
+        };
+        this.notify_current_turn = function (character_name) {
+            return null;
+        };
+        this.update_allies_state = function (allies_state) {
+            return null;
+        };
+        this.update_enemies_state = function (enemies_state) {
+            return null;
+        };
+
+        socket.on('connect', function () {
+            console.log("connected");
+        });
+        socket.on('my combat state', function (my_combat_state) {
+            _this.update_my_combat_state(my_combat_state);
+        });
+
+        socket.on('current turn', function (character_name) {
+            console.log(character_name);
+            _this.notify_current_turn(character_name);
+        });
+
+        //state for my team
+        socket.on('allies state', function (allies_state) {
+            _this.update_allies_state(allies_state);
+        });
+
+        //state for enemies
+        socket.on('enemies state', function (enemies_state) {
+            //this.setState({enemies_state:enemies_state});
+            _this.update_enemies_state(enemies_state);
+        });
+    }
+
+    _createClass(TransportLayer, [{
+        key: 'fetch_my_character',
+        value: function fetch_my_character() {}
+    }]);
+
+    return TransportLayer;
+}();
+
+},{"socket.io-client":321}]},{},[5]);

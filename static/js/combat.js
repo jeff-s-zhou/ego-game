@@ -6,8 +6,8 @@ import React from 'react'
 
 import {observable} from "mobx";
 import {observer} from "mobx-react";
-import {MyCharacterStore, MySkillsStore, TargetsStore} from "stores";
-import {TransportLayer} from "transport_layer";
+import {MyCharacterStore, MySkillsStore, TargetsStore} from "./stores";
+import {TransportLayer} from "./transport_layer";
 
 var JQuery = require('jquery');
 var Grid = require('react-bootstrap/lib/Grid');
