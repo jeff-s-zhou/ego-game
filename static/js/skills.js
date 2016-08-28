@@ -31,9 +31,6 @@ class Skills extends React.Component {
 @observer
 class Skill extends React.Component {
     handleSubmit(e) {
-        var caster_id = this.props.caster_id;
-        var skill_id = this.props.skill.id;
-        var target_id = 2;
         //socket.emit("turn input", {caster_id: caster_id, skill_id: skill_id, target_id: target_id});
         console.log("handling submit")
     }

@@ -6,6 +6,8 @@ import React from 'react'
 
 import {observable} from "mobx";
 import {observer} from "mobx-react";
+import {MyCharacterStore, MySkillsStore, TargetsStore} from "stores";
+import {TransportLayer} from "transport_layer";
 
 var JQuery = require('jquery');
 var Grid = require('react-bootstrap/lib/Grid');
@@ -33,68 +35,13 @@ class Home extends React.Component{
         super(props);
     }
 
-    //TODO: get actual skill based on character id, and not spoofing
-    loadSkillsFromServer() {
-        JQuery.ajax({
-            url: ("/api/skill"),
-            contentType: "application/json",
-            dataType: "json",
-            cache: false,
-            success: (data) => {
-                var my_skills = {};
-                data.objects.map((skill) => {
-                    my_skills[skill.id] = skill
-                });
-                app_state.skills = my_skills;
-            },
-            error: (xhr, status, err) => {
-                console.error("api/ego", status, err.toString());
-            }
-        });
-    }
 
     componentDidMount() {
-        this.loadSkillsFromServer();
-
-        socket.on('connect', () => {console.log("connected");});
-
         //chat
         socket.on('chat message', (msg) => {
             JQuery('#messages').append(JQuery('<li>').text(msg));
         });
-
-        socket.on('current turn', (character_name) => {
-            //console.log(character_name)
-        });
-
-        //state for just the character
-        socket.on('my combat state', (my_combat_state) => {
-            //this.setState({character_state:my_combat_state});
-            app_state.character_state = my_combat_state;
-
-            var old_skills = app_state.skills;
-            my_combat_state.active_skills.map((skill) => {
-                old_skills[skill.id].cooldown = skill.cooldown
-            });
-            //this.setState({skills: old_skills});
-            app_state.skills = old_skills;
-        });
-
-        //state for my team
-        socket.on('allies state', (allies_state) => {
-            //this.setState({allies_state:allies_state});
-            app_state.allies_state = allies_state;
-        });
-
-        //state for enemies
-        socket.on('enemies state', (enemies_state) => {
-            //this.setState({enemies_state:enemies_state});
-            app_state.enemies_state = enemies_state;
-        });
     }
-
-    //<Allies my_state={this.state.character_state} allies_state={this.state.allies_state}/>
-
     render() {
     return (
         <Grid>
