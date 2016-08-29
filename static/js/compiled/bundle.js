@@ -47002,7 +47002,7 @@ function toArray(list, index) {
 }
 
 },{}],368:[function(require,module,exports){
-"use strict";
+'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -47010,11 +47010,11 @@ var _class, _class2; /**
                       * Created by Jeffrey on 8/26/2016.
                       */
 
-var _react = require("react");
+var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var _mobxReact = require("mobx-react");
+var _mobxReact = require('mobx-react');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47034,23 +47034,22 @@ var Skills = (0, _mobxReact.observer)(_class = function (_React$Component) {
     }
 
     _createClass(Skills, [{
-        key: "render",
+        key: 'render',
         value: function render() {
             var _this2 = this;
 
             var my_skills = this.props.skills_store.skill_ids.map(function (skill_id) {
                 var skill = _this2.props.skills_store.skills[skill_id];
-                console.log("it's happenninnnggg");
-                return _react2.default.createElement(Skill, { key: skill_id, skill: skill, caster_id: 3 });
+                return _react2.default.createElement(SkillDisplay, { key: skill_id, skill: skill, caster_id: 3 });
             });
 
             return _react2.default.createElement(
-                "div",
+                'div',
                 null,
                 _react2.default.createElement(
-                    "h1",
+                    'h1',
                     null,
-                    "Skills"
+                    'Skills'
                 ),
                 my_skills
             );
@@ -47060,50 +47059,49 @@ var Skills = (0, _mobxReact.observer)(_class = function (_React$Component) {
     return Skills;
 }(_react2.default.Component)) || _class;
 
-var Skill = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
-    _inherits(Skill, _React$Component2);
+var SkillDisplay = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
+    _inherits(SkillDisplay, _React$Component2);
 
-    function Skill() {
-        _classCallCheck(this, Skill);
+    function SkillDisplay() {
+        _classCallCheck(this, SkillDisplay);
 
-        return _possibleConstructorReturn(this, (Skill.__proto__ || Object.getPrototypeOf(Skill)).apply(this, arguments));
+        return _possibleConstructorReturn(this, (SkillDisplay.__proto__ || Object.getPrototypeOf(SkillDisplay)).apply(this, arguments));
     }
 
-    _createClass(Skill, [{
-        key: "handleSubmit",
-        value: function handleSubmit(e) {
-            //socket.emit("turn input", {caster_id: caster_id, skill_id: skill_id, target_id: target_id});
-            console.log("handling submit");
+    _createClass(SkillDisplay, [{
+        key: 'select_skill',
+        value: function select_skill(e) {
+            this.props.skill.select();
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
             var skill_activate;
             if (this.props.skill.valid) {
                 skill_activate = _react2.default.createElement(
-                    "div",
-                    { onClick: this.handleSubmit.bind(this) },
-                    "Click here"
+                    'div',
+                    { onClick: this.select_skill.bind(this) },
+                    'Click here'
                 );
             } else {
                 skill_activate = 'ON COOLDOWN"';
             }
 
             return _react2.default.createElement(
-                "div",
+                'div',
                 null,
                 this.props.skill.name,
-                _react2.default.createElement("br", null),
+                _react2.default.createElement('br', null),
                 this.props.skill.description,
-                _react2.default.createElement("br", null),
+                _react2.default.createElement('br', null),
                 this.props.skill.condition,
-                _react2.default.createElement("br", null),
+                _react2.default.createElement('br', null),
                 skill_activate
             );
         }
     }]);
 
-    return Skill;
+    return SkillDisplay;
 }(_react2.default.Component)) || _class2;
 
 module.exports = Skills;
@@ -47114,7 +47112,7 @@ module.exports = Skills;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.TargetsStore = exports.SkillsStore = exports.MyCharacterStore = undefined;
+exports.TargetsStore = exports.Skill = exports.SkillsStore = exports.MyCharacterStore = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -47245,6 +47243,8 @@ var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
 })), _class);
 var SkillsStore = exports.SkillsStore = (_class3 = function () {
     function SkillsStore(transport_layer) {
+        var _this2 = this;
+
         _classCallCheck(this, SkillsStore);
 
         _initDefineProp(this, "skills", _descriptor7, this);
@@ -47257,25 +47257,28 @@ var SkillsStore = exports.SkillsStore = (_class3 = function () {
         this.skills = {};
         this.selected = null;
         this.skill_ids = [];
+        this.disposer = (0, _mobx.autorun)(function () {
+            return console.log("selected is now " + _this2.selected);
+        });
     }
 
     _createClass(SkillsStore, [{
         key: "load_skills",
         value: function load_skills(skills) {
-            var _this2 = this;
+            var _this3 = this;
 
             skills.map(function (skill) {
-                _this2.skills[skill.id] = new Skill(_this2, skill);
-                _this2.skill_ids.push(skill.id);
+                _this3.skills[skill.id] = new Skill(_this3, skill);
+                _this3.skill_ids.push(skill.id);
             });
         }
     }, {
         key: "update_skills",
         value: function update_skills(skills) {
-            var _this3 = this;
+            var _this4 = this;
 
             skills.map(function (skill) {
-                _this3.skills[skill.id].update(skill);
+                _this4.skills[skill.id].update(skill);
             });
             console.log("updating skills");
             console.log(this.skills);
@@ -47293,7 +47296,15 @@ var SkillsStore = exports.SkillsStore = (_class3 = function () {
     enumerable: true,
     initializer: null
 })), _class3);
-var Skill = (_class5 = function () {
+var Skill = exports.Skill = (_class5 = function () {
+    _createClass(Skill, [{
+        key: "select",
+        value: function select() {
+            this.store.selected = this;
+            console.log(this);
+        }
+    }]);
+
     function Skill(store, skill) {
         _classCallCheck(this, Skill);
 
@@ -47320,11 +47331,6 @@ var Skill = (_class5 = function () {
             this.condition = skill.condition;
             this.valid = skill.valid;
         }
-    }, {
-        key: "select",
-        value: function select() {
-            this.store.selected = this;
-        }
     }]);
 
     return Skill;
@@ -47340,7 +47346,7 @@ var Skill = (_class5 = function () {
 }), _descriptor13 = _applyDecoratedDescriptor(_class5.prototype, "valid", [_mobx.observable], {
     enumerable: true,
     initializer: null
-})), _class5);
+}), _applyDecoratedDescriptor(_class5.prototype, "select", [_mobx.action], Object.getOwnPropertyDescriptor(_class5.prototype, "select"), _class5.prototype)), _class5);
 
 /*
     statuses:[
@@ -47371,19 +47377,19 @@ var TargetsStore = exports.TargetsStore = (_class7 = function () {
     _createClass(TargetsStore, [{
         key: "load_targets",
         value: function load_targets(targets) {
-            var _this4 = this;
+            var _this5 = this;
 
             targets.map(function (target) {
-                _this4.targets[target.id] = new Target(_this4, target);
+                _this5.targets[target.id] = new Target(_this5, target);
             });
         }
     }, {
         key: "update_targets",
         value: function update_targets(targets) {
-            var _this5 = this;
+            var _this6 = this;
 
             targets.map(function (target) {
-                _this5.targets[target.id].update(target);
+                _this6.targets[target.id].update(target);
             });
         }
     }]);

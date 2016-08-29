@@ -2,7 +2,7 @@
  * Created by Jeffrey on 8/27/2016.
  */
 
-import {observable, autorun} from "mobx";
+import {observable, autorun, action} from "mobx";
 
 
 export class MyCharacterStore {
@@ -57,6 +57,7 @@ export class SkillsStore {
         this.skills = {};
         this.selected = null;
         this.skill_ids = [];
+        this.disposer = autorun(() => console.log("selected is now " + this.selected));
     }
 
     load_skills(skills) {
@@ -75,11 +76,17 @@ export class SkillsStore {
     }
 }
 
-class Skill {
+export class Skill {
     @observable id;
     @observable name;
     @observable condition;
     @observable valid;
+
+    @action
+    select() {
+        this.store.selected = this;
+        console.log(this);
+    }
 
     constructor(store, skill) {
         this.store = store;
@@ -94,10 +101,6 @@ class Skill {
         this.name = skill.name;
         this.condition = skill.condition;
         this.valid = skill.valid;
-    }
-
-    select() {
-        this.store.selected = this;
     }
 }
 
