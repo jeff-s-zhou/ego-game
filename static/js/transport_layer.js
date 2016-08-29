@@ -37,9 +37,9 @@ export class TransportLayer {
 
         socket.on('connect', () => {console.log("connected");});
 
-        socket.on('current turn', (character_name) => {
-            console.log(character_name);
-            this.notify_current_turn(character_name);
+        socket.on('current turn', (combatant_id) => {
+            console.log(combatant_id);
+            this.notify_current_turn(combatant_id);
         });
 
         //state for my team

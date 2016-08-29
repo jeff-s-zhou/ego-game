@@ -23,50 +23,55 @@ export class MyCharacterStore {
         this.active_skills = active_skills;
         this.statuses = [];
         this.disposer = autorun(() => console.log("my hp is now " + this.hp));
-        this.load_my_character();
+        this.transport_layer.fetch_my_character();
     }
 
     update_my_character(state) {
-        console.log("calling update my character");
-        this.hp = state.hp;
-        this.mana = state.mana;
-        this.active_skills.update_skills(state.active_skills);
-        //TODO: statuses
-    }
-
-    load_my_character() {
-        this.transport_layer.fetch_my_character().then((fetched_character) => {
-            this.name = fetched_character.name;
-            this.id = fetched_character.id;
-            this.hp = fetched_character.hp;
-            this.mana = fetched_character.mana;
-            this.active_skills.load_skills(fetched_character.active_skills);
+        if(this.id === 0) {
+            this.name = state.name;
+            this.id = state.id;
+            this.hp = state.hp;
+            this.mana = state.mana;
+            this.active_skills.load_skills(state.active_skills);
             //TODO: statuses
-        })
+        }
+        else {
+            console.log("calling update my character");
+            this.hp = state.hp;
+            this.mana = state.mana;
+            this.active_skills.update_skills(state.active_skills);
+            //TODO: statuses
+        }
+
+
     }
 }
 
 export class SkillsStore {
     @observable skills;
     @observable selected;
+    @observable skill_ids;
 
     constructor(transport_layer) {
         this.transport_layer = transport_layer;
         this.skills = {};
         this.selected = null;
+        this.skill_ids = [];
     }
 
     load_skills(skills) {
         skills.map((skill) => {
-            this.skills[skill.id] = Skill(this, skill);
+            this.skills[skill.id] = new Skill(this, skill);
+            this.skill_ids.push(skill.id);
         });
-
     }
 
     update_skills(skills) {
         skills.map((skill) => {
             this.skills[skill.id].update(skill);
         });
+        console.log("updating skills");
+        console.log(this.skills);
     }
 }
 
@@ -120,7 +125,7 @@ export class TargetsStore {
 
     load_targets(targets) {
         targets.map((target) => {
-            this.targets[target.id] = Target(this, target);
+            this.targets[target.id] = new Target(this, target);
         });
     }
 

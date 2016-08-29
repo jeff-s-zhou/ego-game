@@ -8,15 +8,10 @@ import {observer} from "mobx-react";
 @observer
 class Skills extends React.Component {
     render() {
-        var result_list = [];
-
-        for(var key in this.props.app_state.skills){
-            var skill = this.props.app_state.skills[key];
-            result_list.push(skill)
-        }
-
-        var my_skills = result_list.map((skill) => {
-            return (<Skill key={skill.id} skill={skill} caster_id={3}/>)
+        var my_skills = this.props.skills_store.skill_ids.map((skill_id) => {
+            var skill = this.props.skills_store.skills[skill_id];
+            console.log("it's happenninnnggg");
+            return (<Skill key={skill_id} skill={skill} caster_id={3}/>)
         });
 
         return (
@@ -50,7 +45,7 @@ class Skill extends React.Component {
                 <br />
                 {this.props.skill.description}
                 <br />
-                {this.props.skill.cooldown}
+                {this.props.skill.condition}
                 <br />
                 {skill_activate}
             </div>

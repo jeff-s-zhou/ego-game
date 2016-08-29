@@ -308,7 +308,7 @@ var Home = (0, _mobxReact.observer)(_class = function (_React$Component) {
                             _react2.default.createElement(
                                 Col,
                                 { lg: 8 },
-                                _react2.default.createElement(Skills, { app_state: app_state })
+                                _react2.default.createElement(Skills, { skills_store: my_skills_store })
                             ),
                             _react2.default.createElement(Col, { lg: 4 })
                         )
@@ -47036,15 +47036,12 @@ var Skills = (0, _mobxReact.observer)(_class = function (_React$Component) {
     _createClass(Skills, [{
         key: "render",
         value: function render() {
-            var result_list = [];
+            var _this2 = this;
 
-            for (var key in this.props.app_state.skills) {
-                var skill = this.props.app_state.skills[key];
-                result_list.push(skill);
-            }
-
-            var my_skills = result_list.map(function (skill) {
-                return _react2.default.createElement(Skill, { key: skill.id, skill: skill, caster_id: 3 });
+            var my_skills = this.props.skills_store.skill_ids.map(function (skill_id) {
+                var skill = _this2.props.skills_store.skills[skill_id];
+                console.log("it's happenninnnggg");
+                return _react2.default.createElement(Skill, { key: skill_id, skill: skill, caster_id: 3 });
             });
 
             return _react2.default.createElement(
@@ -47099,7 +47096,7 @@ var Skill = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
                 _react2.default.createElement("br", null),
                 this.props.skill.description,
                 _react2.default.createElement("br", null),
-                this.props.skill.cooldown,
+                this.props.skill.condition,
                 _react2.default.createElement("br", null),
                 skill_activate
             );
@@ -47121,9 +47118,9 @@ exports.TargetsStore = exports.SkillsStore = exports.MyCharacterStore = undefine
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _desc2, _value2, _class3, _descriptor7, _descriptor8, _desc3, _value3, _class5, _descriptor9, _descriptor10, _descriptor11, _descriptor12, _desc4, _value4, _class7, _descriptor13, _descriptor14, _desc5, _value5, _class9, _descriptor15, _descriptor16, _descriptor17; /**
-                                                                                                                                                                                                                                                                                                                                                                                         * Created by Jeffrey on 8/27/2016.
-                                                                                                                                                                                                                                                                                                                                                                                         */
+var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _desc2, _value2, _class3, _descriptor7, _descriptor8, _descriptor9, _desc3, _value3, _class5, _descriptor10, _descriptor11, _descriptor12, _descriptor13, _desc4, _value4, _class7, _descriptor14, _descriptor15, _desc5, _value5, _class9, _descriptor16, _descriptor17, _descriptor18; /**
+                                                                                                                                                                                                                                                                                                                                                                                                        * Created by Jeffrey on 8/27/2016.
+                                                                                                                                                                                                                                                                                                                                                                                                        */
 
 var _mobx = require("mobx");
 
@@ -47203,30 +47200,26 @@ var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
         this.disposer = (0, _mobx.autorun)(function () {
             return console.log("my hp is now " + _this.hp);
         });
+        this.transport_layer.fetch_my_character();
     }
 
     _createClass(MyCharacterStore, [{
         key: "update_my_character",
         value: function update_my_character(state) {
-            console.log("calling update my character");
-            this.hp = state.hp;
-            this.mana = state.mana;
-            this.active_skills.update_skills(state.active_skills);
-            //TODO: statuses
-        }
-    }, {
-        key: "load_my_character",
-        value: function load_my_character() {
-            var _this2 = this;
-
-            this.transport_layer.fetch_my_character().then(function (fetched_character) {
-                _this2.name = fetched_character.name;
-                _this2.id = fetched_character.id;
-                _this2.hp = fetched_character.hp;
-                _this2.mana = fetched_character.mana;
-                _this2.active_skills.update_skills(fetched_character.active_skills);
-                //this.statuses.set_statuses(fetched_character.statuses);
-            });
+            if (this.id === 0) {
+                this.name = state.name;
+                this.id = state.id;
+                this.hp = state.hp;
+                this.mana = state.mana;
+                this.active_skills.load_skills(state.active_skills);
+                //TODO: statuses
+            } else {
+                console.log("calling update my character");
+                this.hp = state.hp;
+                this.mana = state.mana;
+                this.active_skills.update_skills(state.active_skills);
+                //TODO: statuses
+            }
         }
     }]);
 
@@ -47258,28 +47251,34 @@ var SkillsStore = exports.SkillsStore = (_class3 = function () {
 
         _initDefineProp(this, "selected", _descriptor8, this);
 
+        _initDefineProp(this, "skill_ids", _descriptor9, this);
+
         this.transport_layer = transport_layer;
         this.skills = {};
         this.selected = null;
+        this.skill_ids = [];
     }
 
     _createClass(SkillsStore, [{
         key: "load_skills",
         value: function load_skills(skills) {
-            var _this3 = this;
+            var _this2 = this;
 
             skills.map(function (skill) {
-                _this3.skills[skill.id] = Skill(_this3, skill);
+                _this2.skills[skill.id] = new Skill(_this2, skill);
+                _this2.skill_ids.push(skill.id);
             });
         }
     }, {
         key: "update_skills",
         value: function update_skills(skills) {
-            var _this4 = this;
+            var _this3 = this;
 
             skills.map(function (skill) {
-                _this4.skills[skill.id].update(skill);
+                _this3.skills[skill.id].update(skill);
             });
+            console.log("updating skills");
+            console.log(this.skills);
         }
     }]);
 
@@ -47290,18 +47289,21 @@ var SkillsStore = exports.SkillsStore = (_class3 = function () {
 }), _descriptor8 = _applyDecoratedDescriptor(_class3.prototype, "selected", [_mobx.observable], {
     enumerable: true,
     initializer: null
+}), _descriptor9 = _applyDecoratedDescriptor(_class3.prototype, "skill_ids", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
 })), _class3);
 var Skill = (_class5 = function () {
     function Skill(store, skill) {
         _classCallCheck(this, Skill);
 
-        _initDefineProp(this, "id", _descriptor9, this);
+        _initDefineProp(this, "id", _descriptor10, this);
 
-        _initDefineProp(this, "name", _descriptor10, this);
+        _initDefineProp(this, "name", _descriptor11, this);
 
-        _initDefineProp(this, "condition", _descriptor11, this);
+        _initDefineProp(this, "condition", _descriptor12, this);
 
-        _initDefineProp(this, "valid", _descriptor12, this);
+        _initDefineProp(this, "valid", _descriptor13, this);
 
         this.store = store;
         this.id = skill.id;
@@ -47326,16 +47328,16 @@ var Skill = (_class5 = function () {
     }]);
 
     return Skill;
-}(), (_descriptor9 = _applyDecoratedDescriptor(_class5.prototype, "id", [_mobx.observable], {
+}(), (_descriptor10 = _applyDecoratedDescriptor(_class5.prototype, "id", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor10 = _applyDecoratedDescriptor(_class5.prototype, "name", [_mobx.observable], {
+}), _descriptor11 = _applyDecoratedDescriptor(_class5.prototype, "name", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor11 = _applyDecoratedDescriptor(_class5.prototype, "condition", [_mobx.observable], {
+}), _descriptor12 = _applyDecoratedDescriptor(_class5.prototype, "condition", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor12 = _applyDecoratedDescriptor(_class5.prototype, "valid", [_mobx.observable], {
+}), _descriptor13 = _applyDecoratedDescriptor(_class5.prototype, "valid", [_mobx.observable], {
     enumerable: true,
     initializer: null
 })), _class5);
@@ -47353,9 +47355,9 @@ var TargetsStore = exports.TargetsStore = (_class7 = function () {
     function TargetsStore(transport_layer) {
         _classCallCheck(this, TargetsStore);
 
-        _initDefineProp(this, "targets", _descriptor13, this);
+        _initDefineProp(this, "targets", _descriptor14, this);
 
-        _initDefineProp(this, "selected", _descriptor14, this);
+        _initDefineProp(this, "selected", _descriptor15, this);
 
         this.transport_layer = transport_layer;
         this.targets = {};
@@ -47369,28 +47371,28 @@ var TargetsStore = exports.TargetsStore = (_class7 = function () {
     _createClass(TargetsStore, [{
         key: "load_targets",
         value: function load_targets(targets) {
-            var _this5 = this;
+            var _this4 = this;
 
             targets.map(function (target) {
-                _this5.targets[target.id] = Target(_this5, target);
+                _this4.targets[target.id] = new Target(_this4, target);
             });
         }
     }, {
         key: "update_targets",
         value: function update_targets(targets) {
-            var _this6 = this;
+            var _this5 = this;
 
             targets.map(function (target) {
-                _this6.targets[target.id].update(target);
+                _this5.targets[target.id].update(target);
             });
         }
     }]);
 
     return TargetsStore;
-}(), (_descriptor13 = _applyDecoratedDescriptor(_class7.prototype, "targets", [_mobx.observable], {
+}(), (_descriptor14 = _applyDecoratedDescriptor(_class7.prototype, "targets", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor14 = _applyDecoratedDescriptor(_class7.prototype, "selected", [_mobx.observable], {
+}), _descriptor15 = _applyDecoratedDescriptor(_class7.prototype, "selected", [_mobx.observable], {
     enumerable: true,
     initializer: null
 })), _class7);
@@ -47398,11 +47400,11 @@ var Target = (_class9 = function () {
     function Target(store, target) {
         _classCallCheck(this, Target);
 
-        _initDefineProp(this, "id", _descriptor15, this);
+        _initDefineProp(this, "id", _descriptor16, this);
 
-        _initDefineProp(this, "name", _descriptor16, this);
+        _initDefineProp(this, "name", _descriptor17, this);
 
-        _initDefineProp(this, "statuses", _descriptor17, this);
+        _initDefineProp(this, "statuses", _descriptor18, this);
 
         this.store = store;
         this.id = target.id;
@@ -47426,13 +47428,13 @@ var Target = (_class9 = function () {
     }]);
 
     return Target;
-}(), (_descriptor15 = _applyDecoratedDescriptor(_class9.prototype, "id", [_mobx.observable], {
+}(), (_descriptor16 = _applyDecoratedDescriptor(_class9.prototype, "id", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor16 = _applyDecoratedDescriptor(_class9.prototype, "name", [_mobx.observable], {
+}), _descriptor17 = _applyDecoratedDescriptor(_class9.prototype, "name", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor17 = _applyDecoratedDescriptor(_class9.prototype, "statuses", [_mobx.observable], {
+}), _descriptor18 = _applyDecoratedDescriptor(_class9.prototype, "statuses", [_mobx.observable], {
     enumerable: true,
     initializer: null
 })), _class9);
@@ -47580,9 +47582,9 @@ var TransportLayer = exports.TransportLayer = function () {
             console.log("connected");
         });
 
-        socket.on('current turn', function (character_name) {
-            console.log(character_name);
-            _this.notify_current_turn(character_name);
+        socket.on('current turn', function (combatant_id) {
+            console.log(combatant_id);
+            _this.notify_current_turn(combatant_id);
         });
 
         //state for my team
@@ -47603,7 +47605,9 @@ var TransportLayer = exports.TransportLayer = function () {
 
     _createClass(TransportLayer, [{
         key: "fetch_my_character",
-        value: function fetch_my_character() {}
+        value: function fetch_my_character() {
+            this.socket.emit('fetch my character');
+        }
     }]);
 
     return TransportLayer;

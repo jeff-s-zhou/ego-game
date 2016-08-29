@@ -61,7 +61,7 @@ class Home extends React.Component{
                     </Row>
                     <Row>
                         <Col lg={8}>
-                            <Skills app_state={app_state}/>
+                            <Skills skills_store={my_skills_store}/>
                         </Col>
                         <Col lg={4}>
                             {//<Targets enemies_state={this.state.enemies_state}/>
