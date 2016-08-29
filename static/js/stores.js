@@ -2,7 +2,7 @@
  * Created by Jeffrey on 8/27/2016.
  */
 
-import {observable} from "mobx";
+import {observable, autorun} from "mobx";
 
 
 export class MyCharacterStore {
@@ -15,19 +15,22 @@ export class MyCharacterStore {
 
     constructor(transport_layer, active_skills) {
         this.transport_layer = transport_layer;
-        this.transport_layer.update_my_combat_state((combat_state) => this.update_my_character(combat_state));
+        this.transport_layer.update_my_combat_state = ((combat_state) => this.update_my_character(combat_state));
         this.name = "";
         this.id = 0;
         this.hp = 0;
         this.mana = 0;
         this.active_skills = active_skills;
         this.statuses = [];
+        this.disposer = autorun(() => console.log("my hp is now " + this.hp));
+        this.load_my_character();
     }
 
     update_my_character(state) {
+        console.log("calling update my character");
         this.hp = state.hp;
         this.mana = state.mana;
-        this.active_skills.set_skills(state.skills);
+        this.active_skills.update_skills(state.active_skills);
         //TODO: statuses
     }
 
@@ -37,8 +40,8 @@ export class MyCharacterStore {
             this.id = fetched_character.id;
             this.hp = fetched_character.hp;
             this.mana = fetched_character.mana;
-            this.active_skills.update_skills(fetched_character.active_skills)
-            //this.statuses.set_statuses(fetched_character.statuses);
+            this.active_skills.load_skills(fetched_character.active_skills);
+            //TODO: statuses
         })
     }
 }

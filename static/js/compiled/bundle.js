@@ -251,6 +251,10 @@ var Targets = require('./targets');
 
 var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
 
+var transport_layer = new _transport_layer.TransportLayer(socket);
+var my_skills_store = new _stores.SkillsStore(transport_layer);
+var my_character_store = new _stores.MyCharacterStore(transport_layer, my_skills_store);
+
 var app_state = (0, _mobx.observable)({
     character_state: { name: '', id: 0, hp: 0, mana: 0, active_skills: [], statuses: [] },
     allies_state: [],
@@ -47187,23 +47191,27 @@ var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
         _initDefineProp(this, "statuses", _descriptor6, this);
 
         this.transport_layer = transport_layer;
-        this.transport_layer.update_my_combat_state(function (combat_state) {
+        this.transport_layer.update_my_combat_state = function (combat_state) {
             return _this.update_my_character(combat_state);
-        });
+        };
         this.name = "";
         this.id = 0;
         this.hp = 0;
         this.mana = 0;
         this.active_skills = active_skills;
         this.statuses = [];
+        this.disposer = (0, _mobx.autorun)(function () {
+            return console.log("my hp is now " + _this.hp);
+        });
     }
 
     _createClass(MyCharacterStore, [{
         key: "update_my_character",
         value: function update_my_character(state) {
+            console.log("calling update my character");
             this.hp = state.hp;
             this.mana = state.mana;
-            this.active_skills.set_skills(state.skills);
+            this.active_skills.update_skills(state.active_skills);
             //TODO: statuses
         }
     }, {
@@ -47353,7 +47361,7 @@ var TargetsStore = exports.TargetsStore = (_class7 = function () {
         this.targets = {};
         this.selected = null;
 
-        this.disposer = autorun(function () {
+        this.disposer = (0, _mobx.autorun)(function () {
             return console.log();
         });
     }
@@ -47510,7 +47518,7 @@ var Target = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
 module.exports = Targets;
 
 },{"mobx-react":7,"react":320}],371:[function(require,module,exports){
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -47548,16 +47556,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  */
 
 var TransportLayer = exports.TransportLayer = function () {
-    function TransportLayer() {
+    function TransportLayer(socket) {
         var _this = this;
 
         _classCallCheck(this, TransportLayer);
 
-        var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
+        this.socket = socket;
 
-        this.update_my_combat_state = function (my_combat_state) {
-            return null;
-        };
         this.notify_current_turn = function (character_name) {
             return null;
         };
@@ -47567,12 +47572,12 @@ var TransportLayer = exports.TransportLayer = function () {
         this.update_enemies_state = function (enemies_state) {
             return null;
         };
+        this.update_my_combat_state = function (combat_state) {
+            return console.log("still using old function");
+        };
 
         socket.on('connect', function () {
             console.log("connected");
-        });
-        socket.on('my combat state', function (my_combat_state) {
-            _this.update_my_combat_state(my_combat_state);
         });
 
         socket.on('current turn', function (character_name) {
@@ -47590,14 +47595,18 @@ var TransportLayer = exports.TransportLayer = function () {
             //this.setState({enemies_state:enemies_state});
             _this.update_enemies_state(enemies_state);
         });
+
+        socket.on('my combat state', function (my_combat_state) {
+            _this.update_my_combat_state(my_combat_state);
+        });
     }
 
     _createClass(TransportLayer, [{
-        key: 'fetch_my_character',
+        key: "fetch_my_character",
         value: function fetch_my_character() {}
     }]);
 
     return TransportLayer;
 }();
 
-},{"socket.io-client":321}]},{},[5]);
+},{}]},{},[5]);

@@ -6,7 +6,7 @@ import React from 'react'
 
 import {observable} from "mobx";
 import {observer} from "mobx-react";
-import {MyCharacterStore, MySkillsStore, TargetsStore} from "./stores";
+import {MyCharacterStore, SkillsStore, TargetsStore} from "./stores";
 import {TransportLayer} from "./transport_layer";
 
 var JQuery = require('jquery');
@@ -19,6 +19,10 @@ var Allies = require('./allies');
 var Targets = require('./targets');
 
 var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
+
+var transport_layer = new TransportLayer(socket);
+var my_skills_store = new SkillsStore(transport_layer);
+var my_character_store = new MyCharacterStore(transport_layer, my_skills_store);
 
 var app_state = observable({
     character_state:{name:'', id:0, hp:0, mana:0, active_skills:[], statuses:[]},

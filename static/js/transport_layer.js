@@ -27,18 +27,15 @@
 
 export class TransportLayer {
 
-    constructor() {
-        var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
+    constructor(socket) {
+        this.socket = socket;
 
-        this.update_my_combat_state = ((my_combat_state) => null);
         this.notify_current_turn = ((character_name) => null);
         this.update_allies_state = ((allies_state) => null);
         this.update_enemies_state = ((enemies_state) => null);
+        this.update_my_combat_state = ((combat_state) => console.log("still using old function"));
 
         socket.on('connect', () => {console.log("connected");});
-        socket.on('my combat state', (my_combat_state) => {
-            this.update_my_combat_state(my_combat_state)
-        });
 
         socket.on('current turn', (character_name) => {
             console.log(character_name);
@@ -56,9 +53,15 @@ export class TransportLayer {
             this.update_enemies_state(enemies_state);
         });
 
+        socket.on('my combat state', (my_combat_state) => {
+            this.update_my_combat_state(my_combat_state)
+        });
+
+
+
     }
 
     fetch_my_character() {
-
+        this.socket.emit('fetch my character');
     }
 }
