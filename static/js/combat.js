@@ -6,7 +6,8 @@ import React from 'react'
 
 import {observable} from "mobx";
 import {observer} from "mobx-react";
-import {MyCharacterStore, SkillsStore, TargetsStore} from "./stores";
+import {MyCharacterStore} from "./stores/my_character_store";
+import {SkillsStore} from "./stores/my_skills_store";
 import {TransportLayer} from "./transport_layer";
 
 var JQuery = require('jquery');
