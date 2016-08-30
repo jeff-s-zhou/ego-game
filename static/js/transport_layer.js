@@ -33,33 +33,29 @@ export class TransportLayer {
         this.notify_current_turn = ((character_name) => null);
         this.update_allies_state = ((allies_state) => null);
         this.update_enemies_state = ((enemies_state) => null);
-        this.update_my_combat_state = ((combat_state) => console.log("still using old function"));
+        this.update_my_combat_state = ((combat_state) => console.log("update combat state not registered"));
 
         socket.on('connect', () => {console.log("connected");});
 
         socket.on('current turn', (combatant_id) => {
-            console.log(combatant_id);
             this.notify_current_turn(combatant_id);
         });
 
-        //state for my team
         socket.on('allies state', (allies_state) => {
-            console.log("hit the socket");
             this.update_allies_state(allies_state);
         });
 
-        //state for enemies
         socket.on('enemies state', (enemies_state) => {
-            //this.setState({enemies_state:enemies_state});
             this.update_enemies_state(enemies_state);
         });
 
         socket.on('my combat state', (my_combat_state) => {
             this.update_my_combat_state(my_combat_state)
         });
+    }
 
-
-
+    handle_input(caster_id, skill_id, target_id) {
+        this.socket.emit('turn input', {caster_id:caster_id, skill_id:skill_id, target_id:target_id})
     }
 
     fetch_my_character() {

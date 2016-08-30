@@ -328,7 +328,9 @@ var Home = (0, _mobxReact.observer)(_class = function (_React$Component) {
                             _react2.default.createElement(
                                 Col,
                                 { lg: 4 },
-                                _react2.default.createElement(Targets, { combatants_store: combatants_store })
+                                _react2.default.createElement(Targets, { combatants_store: combatants_store,
+                                    my_character_store: my_character_store
+                                })
                             )
                         )
                     ),
@@ -47200,7 +47202,6 @@ var AlliesStore = exports.AlliesStore = (_class = function () {
         this.allies = {};
         this.ally_ids = [];
         this.transport_layer.update_allies_state = function (allies_state) {
-            console.log("hit the new event");
             _this.update_allies(allies_state);
         };
         this.transport_layer.fetch_allies();
@@ -47254,9 +47255,9 @@ var Ally = (_class3 = function () {
     _createClass(Ally, [{
         key: "update",
         value: function update(ally) {
-            console.log("updating ally");
             this.hp = ally.hp;
             this.mp = ally.mp;
+            console.log("updated ally hp is" + this.hp);
 
             //this.statuses = ally.statuses; TODO
         }
@@ -47582,7 +47583,7 @@ function _initializerWarningHelper(descriptor, context) {
 }
 
 var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
-    function MyCharacterStore(transport_layer, active_skills) {
+    function MyCharacterStore(transport_layer, active_skills_store) {
         var _this = this;
 
         _classCallCheck(this, MyCharacterStore);
@@ -47595,7 +47596,7 @@ var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
 
         _initDefineProp(this, "mana", _descriptor4, this);
 
-        _initDefineProp(this, "active_skills", _descriptor5, this);
+        _initDefineProp(this, "active_skills_store", _descriptor5, this);
 
         _initDefineProp(this, "statuses", _descriptor6, this);
 
@@ -47607,7 +47608,7 @@ var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
         this.id = 0;
         this.hp = 0;
         this.mana = 0;
-        this.active_skills = active_skills;
+        this.active_skills_store = active_skills_store;
         this.statuses = [];
         this.disposer = (0, _mobx.autorun)(function () {
             return console.log("my hp is now " + _this.hp);
@@ -47623,15 +47624,24 @@ var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
                 this.id = state.id;
                 this.hp = state.hp;
                 this.mana = state.mana;
-                this.active_skills.load_skills(state.active_skills);
+                this.active_skills_store.load_skills(state.active_skills_store);
                 //TODO: statuses
             } else {
                 console.log("calling update my character");
                 this.hp = state.hp;
                 this.mana = state.mana;
-                this.active_skills.update_skills(state.active_skills);
+                this.active_skills_store.update_skills(state.active_skills_store);
                 //TODO: statuses
             }
+        }
+        //cast the currently selected skill on the ID
+
+    }, {
+        key: "cast_selected_on",
+        value: function cast_selected_on(target_id) {
+            this.transport_layer.handle_input(this.id, this.active_skills_store.selected.id, target_id);
+            //TODO: this might not actually be threadsafe
+            this.active_skills_store.selected = null;
         }
     }]);
 
@@ -47648,13 +47658,13 @@ var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
 }), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, "mana", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "active_skills", [_mobx.observable], {
+}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "active_skills_store", [_mobx.observable], {
     enumerable: true,
     initializer: null
 }), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, "statuses", [_mobx.observable], {
     enumerable: true,
     initializer: null
-})), _class);
+}), _applyDecoratedDescriptor(_class.prototype, "cast_selected_on", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "cast_selected_on"), _class.prototype)), _class);
 
 },{"mobx":8}],373:[function(require,module,exports){
 "use strict";
@@ -47859,8 +47869,10 @@ var Targets = (0, _mobxReact.observer)(_class = function (_React$Component) {
     _createClass(Targets, [{
         key: "render",
         value: function render() {
+            var _this2 = this;
+
             var targets = this.props.combatants_store.get_targets("fake_data").map(function (target) {
-                return _react2.default.createElement(Target, { target: target, key: target.id });
+                return _react2.default.createElement(Target, { target: target, my_character_store: _this2.props.my_character_store, key: target.id });
             });
 
             return _react2.default.createElement(
@@ -47889,11 +47901,16 @@ var Target = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
     }
 
     _createClass(Target, [{
+        key: "select_target",
+        value: function select_target(e) {
+            this.props.my_character_store.cast_selected_on(this.props.target.id);
+        }
+    }, {
         key: "render",
         value: function render() {
             return _react2.default.createElement(
                 "li",
-                null,
+                { onClick: this.select_target.bind(this) },
                 this.props.target.name
             );
         }
@@ -47960,7 +47977,7 @@ var TransportLayer = exports.TransportLayer = function () {
             return null;
         };
         this.update_my_combat_state = function (combat_state) {
-            return console.log("still using old function");
+            return console.log("update combat state not registered");
         };
 
         socket.on('connect', function () {
@@ -47968,19 +47985,14 @@ var TransportLayer = exports.TransportLayer = function () {
         });
 
         socket.on('current turn', function (combatant_id) {
-            console.log(combatant_id);
             _this.notify_current_turn(combatant_id);
         });
 
-        //state for my team
         socket.on('allies state', function (allies_state) {
-            console.log("hit the socket");
             _this.update_allies_state(allies_state);
         });
 
-        //state for enemies
         socket.on('enemies state', function (enemies_state) {
-            //this.setState({enemies_state:enemies_state});
             _this.update_enemies_state(enemies_state);
         });
 
@@ -47990,6 +48002,11 @@ var TransportLayer = exports.TransportLayer = function () {
     }
 
     _createClass(TransportLayer, [{
+        key: "handle_input",
+        value: function handle_input(caster_id, skill_id, target_id) {
+            this.socket.emit('turn input', { caster_id: caster_id, skill_id: skill_id, target_id: target_id });
+        }
+    }, {
         key: "fetch_my_character",
         value: function fetch_my_character() {
             this.socket.emit('fetch my character');

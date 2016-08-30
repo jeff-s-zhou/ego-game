@@ -65,7 +65,9 @@ class Home extends React.Component{
                             <Skills skills_store={my_skills_store}/>
                         </Col>
                         <Col lg={4}>
-                            <Targets combatants_store={combatants_store}/>
+                            <Targets combatants_store={combatants_store}
+                                     my_character_store = {my_character_store}
+                            />
                         </Col>
                     </Row>
                 </Col>

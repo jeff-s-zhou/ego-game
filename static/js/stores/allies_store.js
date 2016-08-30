@@ -13,7 +13,6 @@ export class AlliesStore {
         this.allies = {};
         this.ally_ids = [];
         this.transport_layer.update_allies_state = (allies_state) => {
-            console.log("hit the new event");
             this.update_allies(allies_state)
         };
         this.transport_layer.fetch_allies();
@@ -39,6 +38,8 @@ export class AlliesStore {
 class Ally {
     @observable id;
     @observable name;
+    @observable hp;
+    @observable mp;
     @observable statuses;
 
     constructor(store, ally) {
@@ -52,9 +53,9 @@ class Ally {
     }
 
     update(ally) {
-        console.log("updating ally");
         this.hp = ally.hp;
         this.mp = ally.mp;
+        console.log("updated ally hp is" + this.hp);
 
         //this.statuses = ally.statuses; TODO
     }
