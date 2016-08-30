@@ -7,10 +7,12 @@ import {observable, autorun, action} from "mobx";
 export class TargetsStore {
     @observable targets;
     @observable selected;
+    @observable target_ids;
 
     constructor(transport_layer) {
         this.transport_layer = transport_layer;
         this.targets = {};
+        this.target_ids = [];
         this.selected = null;
 
         this.disposer = autorun(() => console.log())
@@ -19,6 +21,7 @@ export class TargetsStore {
     load_targets(targets) {
         targets.map((target) => {
             this.targets[target.id] = new Target(this, target);
+            this.target_ids.push(target.id);
         });
     }
 

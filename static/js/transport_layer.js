@@ -44,6 +44,7 @@ export class TransportLayer {
 
         //state for my team
         socket.on('allies state', (allies_state) => {
+            console.log("hit the socket");
             this.update_allies_state(allies_state);
         });
 
@@ -63,5 +64,9 @@ export class TransportLayer {
 
     fetch_my_character() {
         this.socket.emit('fetch my character');
+    }
+
+    fetch_allies() {
+        this.socket.emit('fetch allies');
     }
 }

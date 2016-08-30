@@ -8,6 +8,7 @@ import {observable} from "mobx";
 import {observer} from "mobx-react";
 import {MyCharacterStore} from "./stores/my_character_store";
 import {SkillsStore} from "./stores/my_skills_store";
+import {AlliesStore} from "./stores/allies_store";
 import {TransportLayer} from "./transport_layer";
 
 var JQuery = require('jquery');
@@ -17,13 +18,14 @@ var Col = require('react-bootstrap/lib/Col');
 
 var Skills = require('./skills');
 var Allies = require('./allies');
-var Targets = require('./targets');
+var Targets = require('./allies');
 
 var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
 
 var transport_layer = new TransportLayer(socket);
 var my_skills_store = new SkillsStore(transport_layer);
 var my_character_store = new MyCharacterStore(transport_layer, my_skills_store);
+var allies_store = new AlliesStore(transport_layer);
 
 var app_state = observable({
     character_state:{name:'', id:0, hp:0, mana:0, active_skills:[], statuses:[]},
@@ -52,7 +54,7 @@ class Home extends React.Component{
         <Grid>
             <Row>
                 <Col lg={2}>
-
+                    <Allies my_character_store = {my_character_store} allies_store = {allies_store}/>
                 </Col>
                 <Col lg={7}>
                     <Row>
