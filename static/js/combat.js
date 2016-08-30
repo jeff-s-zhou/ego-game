@@ -9,7 +9,10 @@ import {observer} from "mobx-react";
 import {MyCharacterStore} from "./stores/my_character_store";
 import {SkillsStore} from "./stores/my_skills_store";
 import {AlliesStore} from "./stores/allies_store";
+import {EnemiesStore} from "./stores/enemies_store";
 import {TransportLayer} from "./transport_layer";
+import {CombatantsStore} from "./stores/combatants_store";
+
 
 var JQuery = require('jquery');
 var Grid = require('react-bootstrap/lib/Grid');
@@ -18,7 +21,7 @@ var Col = require('react-bootstrap/lib/Col');
 
 var Skills = require('./skills');
 var Allies = require('./allies');
-var Targets = require('./allies');
+var Targets = require('./targets');
 
 var socket = require('socket.io-client')('http://' + document.domain + ':' + location.port + '/test');
 
@@ -26,14 +29,9 @@ var transport_layer = new TransportLayer(socket);
 var my_skills_store = new SkillsStore(transport_layer);
 var my_character_store = new MyCharacterStore(transport_layer, my_skills_store);
 var allies_store = new AlliesStore(transport_layer);
+var enemies_store = new EnemiesStore(transport_layer);
+var combatants_store = new CombatantsStore(transport_layer, allies_store, enemies_store);
 
-var app_state = observable({
-    character_state:{name:'', id:0, hp:0, mana:0, active_skills:[], statuses:[]},
-    allies_state:[],
-    enemies_state:[],
-    messages:[],
-    skills:{}
-});
 
 
 @observer
@@ -67,8 +65,7 @@ class Home extends React.Component{
                             <Skills skills_store={my_skills_store}/>
                         </Col>
                         <Col lg={4}>
-                            {//<Targets enemies_state={this.state.enemies_state}/>
-                            }
+                            <Targets combatants_store={combatants_store}/>
                         </Col>
                     </Row>
                 </Col>
@@ -81,7 +78,6 @@ class Home extends React.Component{
   }
 }
 
-@observer
 class Display extends React.Component{
     render() {
         return (
@@ -107,7 +103,6 @@ class Display extends React.Component{
     }
 }
 
-@observer
 class ChatForm extends React.Component {
     handleSubmit(e) {
         console.log("handling Submit");

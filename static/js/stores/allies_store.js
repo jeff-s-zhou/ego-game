@@ -6,7 +6,6 @@ import {observable, autorun, action} from "mobx";
 
 export class AlliesStore {
     @observable allies;
-    @observable selected;
     @observable ally_ids;
 
     constructor(transport_layer) {

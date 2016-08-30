@@ -9,9 +9,9 @@ import {observer} from "mobx-react";
 class Targets extends React.Component {
 
     render() {
-        var targets = this.props.enemies_state.map((enemy) => {
-            return(<Target enemy={enemy} key={enemy.id}/>)
-        })
+        var targets = this.props.combatants_store.get_targets("fake_data").map((target) => {
+            return(<Target target={target} key={target.id}/>)
+        });
 
         return (
             <div>
@@ -27,7 +27,7 @@ class Target extends React.Component {
     render() {
         return (
             <li>
-                {this.props.enemy.name}
+                {this.props.target.name}
             </li>
         );
     }

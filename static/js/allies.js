@@ -8,7 +8,7 @@ import {observer} from "mobx-react";
 @observer
 class Allies extends React.Component {
    render() {
-        var allies_state=this.props.allies_store.ally_ids.map((ally_id) => {
+        var allies_state= this.props.allies_store.ally_ids.map((ally_id) => {
             return(<Ally ally={this.props.allies_store.allies[ally_id]} />)
         });
 

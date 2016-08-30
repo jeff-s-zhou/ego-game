@@ -69,4 +69,8 @@ export class TransportLayer {
     fetch_allies() {
         this.socket.emit('fetch allies');
     }
+
+    fetch_enemies() {
+        this.socket.emit('fetch enemies');
+    }
 }
