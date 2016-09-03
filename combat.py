@@ -28,23 +28,6 @@ class Event:
     def do(self):
         pass
 
-    def undo(self):
-        pass
-
-
-# target is who the conditional goes onto
-class AddConditional(Event):
-    def __init__(self, caster, target, conditional, pre):
-        super().__init__(caster, None)
-        self.conditional = conditional
-        self.pre = pre
-
-    def do(self):
-        self.target.add_status(self.conditional)
-
-    def undo(self):
-        self.target.remove_status(self.conditional)
-
 
 class Damage(Event):
     def __init__(self, caster, target, damage):
@@ -52,17 +35,7 @@ class Damage(Event):
         self.damage = damage
 
     def do(self):
-        self.target.health = self.target.health - (self.damage - self.target.defense)
-
-    def undo(self):
-        self.target.health = self.target.health + (self.damage - self.target.defense)
-
-    def set_damage(self, amount):
-        if amount < 0:
-            self.damage = 0
-        else:
-            self.damage = amount
-
+        return self.target.take_damage(self.damage)
 
 class ApplyStatus(Event):
     def __init__(self, caster, target, status_effect):
@@ -70,84 +43,41 @@ class ApplyStatus(Event):
         self.status_effect = status_effect
 
     def do(self):
-        self.target.add_status_effects(self.status_effect)
-
-    def undo(self):
-        self.target.undo_status_effects(self.status_effect)
+        return self.target.add_status_effects(self.status_effect)
 
 
-class ReduceMana(Event):
-    def __init__(self, caster, target, mana):
+class ReduceMp(Event):
+    def __init__(self, caster, target, mp):
         super().__init__(caster, target)
-        self.mana = mana
+        self.mp = mp
 
     def do(self):
-        self.target.mana = self.target.mana - self.mana
-
-    def undo(self):
-        self.target.mana = self.target.mana + self.mana
+        return self.target.reduce_mp(self.mp)
 
 
-class SkillCast:
-    def __init__(self, caster, target, skill, events:List[Event]):
-        self.caster = caster
-        self.target = target
-        self.skill = skill
+#single target, multiple effects
+class Payload:
+    def __init__(self, events):
         self.events = events
 
-    def change_target(self, old_target, new_target):
+    def deliver(self):
+        reactions = []
+        status_updates = []
         for event in self.events:
-            if event.target == old_target:
-                event.target = new_target
+            reaction, status_update = event.do()
+            reactions.append(reaction)
+            status_updates.append(status_update)
+        return reactions, status_updates
 
-            # else it's an AoE
-            if self.target == old_target:
-                self.target = new_target
+    def get_target(self):
+        return self.events[0].target
 
-    def do(self):
-        for event in self.events:
-            event.do()
-
-
-# TODO:abstract this out to deal with AoE
-class SingleHealCast(SkillCast):
-    def __init__(self, caster, target, skill, events):
-        super().__init__(caster, target, skill, events)
-
-    def get_heal_amount(self):
-        for event in self.events:
-            if event.__class__ == Heal:
-                return event.heal
-        else:
-            return 0
+class SkillCast:
+    def __init__(self, caster, targets, skill, payloads):
+        self.caster = caster
+        self.skill = skill
+        self.targets = targets
+        self.payloads = payloads # can include caster if there is a payload for the caster
 
 
-'''
 
-# undo the last skill cast on the target
-# Note: all undo commands in events should literally just undo the do
-# the assumption is that we've already reverted back to the state at the time of the event
-class UndoState(Event):
-    def __init__(self, caster, target):
-        super().__init__(caster, target)
-
-    def do(self):
-        self.last_affected_update = self.target.get_last_affected_update
-        self.last_affected_update.undo()
-
-    def undo(self):
-        self.last_affected_update.do()
-'''
-
-'''
-class Heal(Event):
-    def __init__(self, caster, target, heal):
-        super().__init__(caster, target)
-        self.heal = heal
-
-    def do(self):
-        self.target.health = self.target.health + self.heal
-
-    def undo(self):
-        self.target.health = self.target.health + self.heal
-'''

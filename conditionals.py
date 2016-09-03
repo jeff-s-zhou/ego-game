@@ -75,7 +75,7 @@ class PreConditional(Conditional):
     def __init__(self, caster, target, types, state_handler):
         super().__init__(caster, target, types, state_handler)
 
-    def modify(self, cast: combat.SkillCast) -> PreConditionalReturnType:
+    def respond_to(self, cast: combat.SkillCast) -> PreConditionalReturnType:
         pass
 
 
@@ -83,16 +83,16 @@ class PostConditional(Conditional):
     def __init__(self, caster, target, types, state_handler):
         super().__init__(caster, target, types, state_handler)
 
-    def modify(self, cast: combat.SkillCast) -> List[combat.SkillCast]:
+    def respond_to(self, cast: combat.SkillCast) -> List[combat.SkillCast]:
         pass
 
 
-class Protect(PreConditional):
+'''class Protect(PreConditional):
     def __init__(self, caster, target):
         state_handler = Temporary(2)
         super().__init__(caster, target, [combat.Type.holy], state_handler)
 
-    def modify(self, cast):
+    def respond_to(self, cast):
         if (cast.target == self.target):
             cast.set_target(self.target, self.caster)
             self.state_handler.triggered()
@@ -105,7 +105,7 @@ class Lifesteal(PostConditional):
         state_handler = Permanent(6)
         super().__init__(caster, caster, [combat.Type.lifesteal], state_handler)
 
-    def modify(self, cast):
+    def respond_to(self, cast):
         if cast.caster == self.caster and cast.damage > 0:
             self.state_handler.triggered()
             return self.cast_active(cast)
@@ -124,9 +124,10 @@ class BlackBlood(PreConditional):
         state_handler = Temporary(4)
         super().__init__(caster, caster, [], state_handler)
 
-    def modify(self, cast):
+    def respond_to(self, cast):
         if cast.target == self.caster and cast.skill.has_type(combat.Type.lifesteal):
             self.state_handler.triggered()
+            #TODO this is bugged, cast needs to have its heal set to 0
             return cast, self.cast_active(cast)
         else:
             return cast, None
@@ -134,4 +135,4 @@ class BlackBlood(PreConditional):
     def cast_active(self, original_cast:combat.SingleHealCast) -> combat.SkillCast:
         heal_amount = original_cast.get_heal_amount()
         damage = combat.Damage(original_cast.target, original_cast.caster, heal_amount)
-        return combat.SkillCast(original_cast.target, original_cast.caster, self, [damage])
+        return combat.SkillCast(original_cast.target, original_cast.caster, self, [damage])'''

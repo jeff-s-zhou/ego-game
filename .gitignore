@@ -1,4 +1,6 @@
 venv/
 static/js/node_modules/
+static/js/compiled/
 .idea/
 *.pyc
+*.db

@@ -7,17 +7,20 @@ from shared import db
 class Character(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(Text, unique=True)
-    account_id = Column(Integer, unique=False)
-    hp = Column(Integer, unique=False)
-    power = Column(Integer, unique=False)
-    defense = Column(Integer, unique=False)
-    initiative = Column(Integer, unique=False)
+    account_id = Column(Integer)
+    hp = Column(Integer)
+    power = Column(Integer)
+    defense = Column(Integer)
+    initiative = Column(Integer)
 
-class Skills(db.Model):
+class Skill(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(Text, unique=True)
+    description = Column(Text)
+    cooldown = Column(Integer)
+    valid = Column(Boolean)
 
-class Character_Skills(db.Model):
+class CharacterSkill(db.Model):
     id = Column (Integer, primary_key=True)
-    character_id = Column(Integer, unique=False)
-    skill_id = Column(Integer, unique=False)
+    character_id = Column(Integer)
+    skill_id = Column(Integer)

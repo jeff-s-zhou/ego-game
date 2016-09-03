@@ -25,7 +25,7 @@ FIREBALL_TOOLTIP = ""
 PROTECT_COOLDOWN = 4
 
 
-# valid targets
+# valid allies
 # ...do we just want to make this really mathy and then spit out the names?
 # like, for all allies we do all - all_targets?
 class Targets(Enum):
@@ -42,8 +42,10 @@ class Targets(Enum):
 
 
 class Skill:
-    def __init__(self, name:str, caster: Character, types):
+    def __init__(self, id:int, name:str, description:str, caster: Character, types):
+        self.id = id
         self.name = name
+        self.description = description
         self.caster = caster
         self.types = types
 
@@ -56,26 +58,36 @@ class Skill:
     def to_dict(self):
         pass
 
+    def turn_tick(self):
+        pass
+
 
 # we're choosing not to do a big tree of inheritance because each skill should feel pretty unique
 
 # single target prototype
 class Slash(Skill):
     def __init__(self, caster: Character):
-        super().__init__('slash', caster, [])
+        super().__init__(1, 'A cutting skill.', 'slash', caster, [])
         self.cooldown = 0
         self.damage = SLASH_DAMAGE_MULTIPLIER * caster.stats.damage
         self.valid_targets = [Targets.single_enemy]
 
     def cast(self, target):
-        # TODO: check if target is valid?
+        # TODO: check if target(s) are valid
         self.cooldown = SLASH_COOLDOWN
-        damage = combat.Damage(self.caster, target, self.damage),
-        mana_cost = combat.ReduceMana(self.caster, self.caster, SLASH_MANA_COST)
-        return combat.SkillCast(self.caster, target, self, [damage, mana_cost])
+        damage = combat.Damage(self.caster, target, self.damage)
+        mana_cost = combat.ReduceMp(self.caster, self.caster, SLASH_MANA_COST)
+        payloads = dict()
+        payloads[target.id] = combat.Payload([damage])
+        payloads[self.caster.id] = combat.Payload([mana_cost])
+        return combat.SkillCast(self.caster, [target, self.caster], self, payloads)
+
+
+    def is_valid(self):
+        return self.cooldown == 0
 
     def to_dict(self):
-        return {'name': self.name, 'cooldown': 0}
+        return {'id': 1, 'name': self.name, 'description': self.description, 'cooldown': 0, 'valid': self.is_valid()}
 
 
 # targetable buff prototype
