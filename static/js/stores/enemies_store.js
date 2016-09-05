@@ -48,7 +48,6 @@ class Enemy {
     }
 
     update(enemy) {
-        console.log("updating enemy");
         this.name = enemy.name;
 
 

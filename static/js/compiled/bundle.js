@@ -47137,9 +47137,9 @@ exports.AlliesStore = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _desc, _value, _class, _descriptor, _descriptor2, _desc2, _value2, _class3, _descriptor3, _descriptor4, _descriptor5; /**
-                                                                                                                           * Created by Jeffrey on 8/29/2016.
-                                                                                                                           */
+var _desc, _value, _class, _descriptor, _descriptor2, _desc2, _value2, _class3, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7; /**
+                                                                                                                                                       * Created by Jeffrey on 8/29/2016.
+                                                                                                                                                       */
 
 var _mobx = require("mobx");
 
@@ -47241,7 +47241,11 @@ var Ally = (_class3 = function () {
 
         _initDefineProp(this, "name", _descriptor4, this);
 
-        _initDefineProp(this, "statuses", _descriptor5, this);
+        _initDefineProp(this, "hp", _descriptor5, this);
+
+        _initDefineProp(this, "mp", _descriptor6, this);
+
+        _initDefineProp(this, "statuses", _descriptor7, this);
 
         this.store = store;
         this.id = ally.id;
@@ -47257,8 +47261,6 @@ var Ally = (_class3 = function () {
         value: function update(ally) {
             this.hp = ally.hp;
             this.mp = ally.mp;
-            console.log("updated ally hp is" + this.hp);
-
             //this.statuses = ally.statuses; TODO
         }
     }]);
@@ -47270,7 +47272,13 @@ var Ally = (_class3 = function () {
 }), _descriptor4 = _applyDecoratedDescriptor(_class3.prototype, "name", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor5 = _applyDecoratedDescriptor(_class3.prototype, "statuses", [_mobx.observable], {
+}), _descriptor5 = _applyDecoratedDescriptor(_class3.prototype, "hp", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor6 = _applyDecoratedDescriptor(_class3.prototype, "mp", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor7 = _applyDecoratedDescriptor(_class3.prototype, "statuses", [_mobx.observable], {
     enumerable: true,
     initializer: null
 })), _class3);
@@ -47502,7 +47510,6 @@ var Enemy = (_class3 = function () {
     _createClass(Enemy, [{
         key: "update",
         value: function update(enemy) {
-            console.log("updating enemy");
             this.name = enemy.name;
 
             //this.statuses = enemy.statuses; TODO
@@ -47627,7 +47634,6 @@ var MyCharacterStore = exports.MyCharacterStore = (_class = function () {
                 this.active_skills_store.load_skills(state.active_skills_store);
                 //TODO: statuses
             } else {
-                console.log("calling update my character");
                 this.hp = state.hp;
                 this.mana = state.mana;
                 this.active_skills_store.update_skills(state.active_skills_store);
@@ -47766,8 +47772,6 @@ var SkillsStore = exports.SkillsStore = (_class = function () {
             skills.map(function (skill) {
                 _this3.skills[skill.id].update(skill);
             });
-            console.log("updating skills");
-            console.log(this.skills);
         }
     }]);
 
@@ -47998,6 +48002,10 @@ var TransportLayer = exports.TransportLayer = function () {
 
         socket.on('my combat state', function (my_combat_state) {
             _this.update_my_combat_state(my_combat_state);
+        });
+
+        socket.on('turn log', function (turn_log) {
+            console.log(turn_log);
         });
     }
 

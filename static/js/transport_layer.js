@@ -34,6 +34,7 @@ export class TransportLayer {
         this.update_allies_state = ((allies_state) => null);
         this.update_enemies_state = ((enemies_state) => null);
         this.update_my_combat_state = ((combat_state) => console.log("update combat state not registered"));
+        this.update_log = ((entry) => null);
 
         socket.on('connect', () => {console.log("connected");});
 
@@ -52,6 +53,11 @@ export class TransportLayer {
         socket.on('my combat state', (my_combat_state) => {
             this.update_my_combat_state(my_combat_state)
         });
+
+        socket.on('turn log', (turn_log) => {
+            this.update_log(turn_log);
+            console.log(turn_log)
+        });
     }
 
     handle_input(caster_id, skill_id, target_id) {
@@ -68,5 +74,9 @@ export class TransportLayer {
 
     fetch_enemies() {
         this.socket.emit('fetch enemies');
+    }
+
+    fetch_log() {
+        this.socket.emit('fetch log');
     }
 }

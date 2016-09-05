@@ -28,8 +28,6 @@ export class SkillsStore {
         skills.map((skill) => {
             this.skills[skill.id].update(skill);
         });
-        console.log("updating skills");
-        console.log(this.skills);
     }
 }
 

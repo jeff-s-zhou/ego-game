@@ -55,8 +55,6 @@ class Ally {
     update(ally) {
         this.hp = ally.hp;
         this.mp = ally.mp;
-        console.log("updated ally hp is" + this.hp);
-
         //this.statuses = ally.statuses; TODO
     }
 }

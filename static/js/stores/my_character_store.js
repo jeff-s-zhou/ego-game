@@ -36,7 +36,6 @@ export class MyCharacterStore {
             //TODO: statuses
         }
         else {
-            console.log("calling update my character");
             this.hp = state.hp;
             this.mana = state.mana;
             this.active_skills_store.update_skills(state.active_skills_store);
