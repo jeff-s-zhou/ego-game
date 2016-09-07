@@ -10,12 +10,12 @@ class Skills extends React.Component {
     render() {
         var my_skills = this.props.skills_store.skill_ids.map((skill_id) => {
             var skill = this.props.skills_store.skills[skill_id];
-            return (<SkillDisplay key={skill_id} skill={skill} caster_id={3}/>)
+            return (<SkillDisplay key={skill_id} skill={skill}/>)
         });
 
         return (
             <div>
-                <h1>Skills</h1>
+                <h2>Skills</h2>
                 {my_skills}
             </div>
         );

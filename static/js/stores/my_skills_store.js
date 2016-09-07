@@ -15,6 +15,15 @@ export class SkillsStore {
         this.selected = null;
         this.skill_ids = [];
         this.disposer = autorun(() => console.log("selected is now " + this.selected));
+        this.transport_layer.update_my_skill_states = (skill_states) => {
+            if(this.skill_ids.length == 0){
+                this.load_skills(skill_states);
+            }
+            else {
+                this.update_skills(skill_states);
+            }
+
+        }
     }
 
     load_skills(skills) {
@@ -29,11 +38,19 @@ export class SkillsStore {
             this.skills[skill.id].update(skill);
         });
     }
+
+    //cast the currently selected skill on the ID
+    @action cast(caster_id, target_id) {
+        this.transport_layer.handle_input(caster_id, this.selected.id, target_id);
+        //TODO: this might not actually be threadsafe
+        this.selected = null;
+    }
 }
 
 export class Skill {
     @observable id;
     @observable name;
+    @observable description;
     @observable condition;
     @observable valid;
 
@@ -47,13 +64,12 @@ export class Skill {
         this.store = store;
         this.id = skill.id;
         this.name = skill.name;
+        this.description = skill.description;
         this.condition = skill.condition;
         this.valid = skill.valid;
     }
 
     update(skill) {
-        this.id = skill.id;
-        this.name = skill.name;
         this.condition = skill.condition;
         this.valid = skill.valid;
     }

@@ -8,23 +8,21 @@ import {observer} from "mobx-react";
 @observer
 class Allies extends React.Component {
    render() {
-        var allies_state= this.props.allies_store.ally_ids.map((ally_id) => {
-            return(<Ally ally={this.props.allies_store.allies[ally_id]} />)
+        var allies= this.props.combatants_store.ally_ids.map((ally_id) => {
+            return(<Ally ally={this.props.combatants_store.allies[ally_id]} key={ally_id} />)
         });
+       var me;
+       if(this.props.combatants_store.me != null) {
+           me = <Ally ally={this.props.combatants_store.me}/>
+       }
+
 
        return (
            <div>
-               <h1>Team</h1>
+               <h2>Team</h2>
                <ul>
-                   <li>
-                   {this.props.my_character_store.name}
-                   < br />
-                   {this.props.my_character_store.hp}
-                   < br />
-                   {this.props.my_character_store.mp}
-                   < br />
-                   </li>
-                   {allies_state}
+                   {me}
+                   {allies}
                </ul>
            </div>
        )
@@ -38,9 +36,9 @@ class Ally extends React.Component {
             <li>
                 {this.props.ally.name}
                 < br />
-                {this.props.ally.hp}
+                {this.props.ally.max_hp}
                 < br />
-                {this.props.ally.mp}
+                {this.props.ally.max_mp}
             </li>
         )
     }

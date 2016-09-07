@@ -10,13 +10,18 @@ class Targets extends React.Component {
 
     render() {
         var targets = this.props.combatants_store.get_targets("fake_data").map((target) => {
-            return(<Target target={target} my_character_store={this.props.my_character_store} key={target.id}/>)
+            return(<Target skills_store={this.props.skills_store}
+                           target={target}
+                           me={this.props.combatants_store.me}
+                           key={target.id}/>)
         });
 
         return (
             <div>
-            <h1>Targets</h1>
+            <h2>Targets</h2>
+            <ul>
             {targets}
+            </ul>
             </div>
         )
     }
@@ -25,7 +30,7 @@ class Targets extends React.Component {
 @observer
 class Target extends React.Component {
     select_target(e) {
-        this.props.my_character_store.cast_selected_on(this.props.target.id);
+        this.props.skills_store.cast(this.props.me.id, this.props.target.id);
     }
 
     render() {

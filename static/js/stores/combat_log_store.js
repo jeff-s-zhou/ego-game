@@ -8,9 +8,10 @@ export class CombatLogStore {
     @observable turn_entries;
 
     constructor(transport_layer) {
+        this.turn_entries = [];
         this.transport_layer = transport_layer;
 
-        this.transport_layer.update_log((entry) => {
+        this.transport_layer.update_log = ((entry) => {
             this.update_log_entries(entry)
         });
 
@@ -18,7 +19,7 @@ export class CombatLogStore {
     }
 
     update_log_entries(entry) {
-        turn_entries.push(TurnEntry(entry))
+        this.turn_entries.push(new TurnEntry(entry))
     }
 }
 
@@ -26,7 +27,7 @@ class TurnEntry{
     @observable pre_reactions;
     @observable skill_cast;
     @observable payloads_and_post_reactions;
-    
+
     constructor(entry){
         this.pre_reactions = entry.pre_reactions;
         this.skill_cast = entry.skill_cast;

@@ -25,7 +25,7 @@ var Combat = require('./combat');
 class App extends React.Component{
   render() {
     return (
-      <Grid>
+      <Grid fluid>
                 {this.props.children}
       </Grid>
     );
