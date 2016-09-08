@@ -51,7 +51,7 @@ class Home extends React.Component{
                 <Allies combatants_store={combatants_store}/>
             </Col>
             <Col lg={7}>
-                <Row id="grey">
+                <Row className="grey">
                     <Col lg={9}>
                         <CombatLog log_store={log_store}/>
                     </Col>

@@ -30,12 +30,18 @@ class Targets extends React.Component {
 @observer
 class Target extends React.Component {
     select_target(e) {
-        this.props.skills_store.cast(this.props.me.id, this.props.target.id);
+        if(this.props.target.selected) {
+            this.props.skills_store.cast(this.props.me, this.props.target);
+        }
+        else {
+            this.props.target.select();
+        }
     }
 
     render() {
+        var css_class = this.props.target.selected ? "grey" : "";
         return (
-            <li onClick={this.select_target.bind(this)}>
+            <li className={css_class} onClick={this.select_target.bind(this)}>
                 {this.props.target.name}
             </li>
         );

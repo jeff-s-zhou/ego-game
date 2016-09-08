@@ -197,14 +197,24 @@ var Ally = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
     _createClass(Ally, [{
         key: "render",
         value: function render() {
+            var bar_id = this.props.ally.id + "-health-fill";
             return React.createElement(
                 "li",
                 null,
                 this.props.ally.name,
                 React.createElement("br", null),
-                this.props.ally.max_hp,
-                React.createElement("br", null),
-                this.props.ally.max_mp
+                React.createElement(
+                    "div",
+                    { id: "ally-health-bar" },
+                    React.createElement("div", { id: bar_id, className: "ally-health-bar-elements whitebg" }),
+                    React.createElement("div", { className: "ally-health-bar-elements blackbg" }),
+                    React.createElement("div", { className: "ally-health-bar-elements makeblack" }),
+                    React.createElement(
+                        "span",
+                        { id: "ally-health-bar-text" },
+                        this.props.ally.hp + "/" + this.props.ally.max_hp
+                    )
+                )
             );
         }
     }]);
@@ -297,7 +307,7 @@ var Home = function (_React$Component) {
                     { lg: 7 },
                     _react2.default.createElement(
                         Row,
-                        { id: "grey" },
+                        { className: "grey" },
                         _react2.default.createElement(
                             Col,
                             { lg: 9 },
@@ -437,7 +447,7 @@ var CombatLog = (0, _mobxReact.observer)(_class = function (_React$Component) {
                     "Combat"
                 ),
                 _react2.default.createElement(
-                    "li",
+                    "ul",
                     null,
                     entries
                 )
@@ -464,10 +474,14 @@ var TurnEntry = (0, _mobxReact.observer)(_class2 = function (_React$Component2) 
             if (this.props.entry.skill_cast == "") {
                 entry = "Turn has been skipped";
             } else {
-                entry = this.props.entry.skill_cast;
+                var payload_updates = "";
+                for (var key in this.props.entry.payloads_and_post_reactions) {
+                    payload_updates = payload_updates + key;
+                }
+                entry = this.props.entry.skill_cast + payload_updates;
             }
             return _react2.default.createElement(
-                "ul",
+                "li",
                 null,
                 entry
             );
@@ -47047,7 +47061,7 @@ function toArray(list, index) {
 }
 
 },{}],369:[function(require,module,exports){
-'use strict';
+"use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -47055,11 +47069,11 @@ var _class, _class2; /**
                       * Created by Jeffrey on 8/26/2016.
                       */
 
-var _react = require('react');
+var _react = require("react");
 
 var _react2 = _interopRequireDefault(_react);
 
-var _mobxReact = require('mobx-react');
+var _mobxReact = require("mobx-react");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47079,7 +47093,7 @@ var Skills = (0, _mobxReact.observer)(_class = function (_React$Component) {
     }
 
     _createClass(Skills, [{
-        key: 'render',
+        key: "render",
         value: function render() {
             var _this2 = this;
 
@@ -47089,14 +47103,18 @@ var Skills = (0, _mobxReact.observer)(_class = function (_React$Component) {
             });
 
             return _react2.default.createElement(
-                'div',
+                "div",
                 null,
                 _react2.default.createElement(
-                    'h2',
+                    "h2",
                     null,
-                    'Skills'
+                    "Skills"
                 ),
-                my_skills
+                _react2.default.createElement(
+                    "ul",
+                    null,
+                    my_skills
+                )
             );
         }
     }]);
@@ -47114,34 +47132,34 @@ var SkillDisplay = (0, _mobxReact.observer)(_class2 = function (_React$Component
     }
 
     _createClass(SkillDisplay, [{
-        key: 'select_skill',
+        key: "select_skill",
         value: function select_skill(e) {
             this.props.skill.select();
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
-            var skill_activate;
+            var css_class = this.props.skill.selected ? "grey" : "";
+            var skill_text = this.props.skill.name + " " + this.props.skill.condition;
+            var skill;
             if (this.props.skill.valid) {
-                skill_activate = _react2.default.createElement(
-                    'div',
-                    { onClick: this.select_skill.bind(this) },
-                    'Click here'
+                skill = _react2.default.createElement(
+                    "div",
+                    { className: css_class, onClick: this.select_skill.bind(this) },
+                    skill_text
                 );
             } else {
-                skill_activate = 'ON COOLDOWN"';
+                skill = _react2.default.createElement(
+                    "div",
+                    { className: "greyed-text" },
+                    skill_text
+                );
             }
 
             return _react2.default.createElement(
-                'div',
+                "li",
                 null,
-                this.props.skill.name,
-                _react2.default.createElement('br', null),
-                this.props.skill.description,
-                _react2.default.createElement('br', null),
-                this.props.skill.condition,
-                _react2.default.createElement('br', null),
-                skill_activate
+                skill
             );
         }
     }]);
@@ -47275,9 +47293,9 @@ exports.CombatantsStore = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _desc2, _value2, _class3, _descriptor8, _descriptor9, _descriptor10, _desc3, _value3, _class5, _descriptor11, _descriptor12, _descriptor13, _descriptor14, _descriptor15, _descriptor16, _descriptor17, _desc4, _value4, _class7, _descriptor18, _descriptor19, _descriptor20, _descriptor21; /**
-                                                                                                                                                                                                                                                                                                                                                                                                                           * Created by Jeffrey on 8/29/2016.
-                                                                                                                                                                                                                                                                                                                                                                                                                           */
+var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _desc2, _value2, _class3, _descriptor8, _descriptor9, _descriptor10, _descriptor11, _desc3, _value3, _class5, _descriptor12, _descriptor13, _descriptor14, _descriptor15, _descriptor16, _descriptor17, _descriptor18, _desc4, _value4, _class7, _descriptor19, _descriptor20, _descriptor21, _descriptor22; /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                          * Created by Jeffrey on 8/29/2016.
+                                                                                                                                                                                                                                                                                                                                                                                                                                          */
 
 var _mobx = require("mobx");
 
@@ -47463,20 +47481,34 @@ var CombatantsStore = exports.CombatantsStore = (_class = function () {
     enumerable: true,
     initializer: null
 })), _class);
-var Combatant = (_class3 = function Combatant(store, combatant) {
-    _classCallCheck(this, Combatant);
+var Combatant = (_class3 = function () {
+    function Combatant(store, combatant) {
+        _classCallCheck(this, Combatant);
 
-    _initDefineProp(this, "id", _descriptor8, this);
+        _initDefineProp(this, "id", _descriptor8, this);
 
-    _initDefineProp(this, "name", _descriptor9, this);
+        _initDefineProp(this, "name", _descriptor9, this);
 
-    _initDefineProp(this, "up_to_bat", _descriptor10, this);
+        _initDefineProp(this, "up_to_bat", _descriptor10, this);
 
-    this.store = store;
-    this.id = combatant.id;
-    this.name = combatant.name;
-    this.up_to_bat = false;
-}, (_descriptor8 = _applyDecoratedDescriptor(_class3.prototype, "id", [_mobx.observable], {
+        _initDefineProp(this, "selected", _descriptor11, this);
+
+        this.store = store;
+        this.id = combatant.id;
+        this.name = combatant.name;
+        this.up_to_bat = false;
+        this.selected = false;
+    }
+
+    _createClass(Combatant, [{
+        key: "select",
+        value: function select() {
+            this.selected = true;
+        }
+    }]);
+
+    return Combatant;
+}(), (_descriptor8 = _applyDecoratedDescriptor(_class3.prototype, "id", [_mobx.observable], {
     enumerable: true,
     initializer: null
 }), _descriptor9 = _applyDecoratedDescriptor(_class3.prototype, "name", [_mobx.observable], {
@@ -47485,7 +47517,10 @@ var Combatant = (_class3 = function Combatant(store, combatant) {
 }), _descriptor10 = _applyDecoratedDescriptor(_class3.prototype, "up_to_bat", [_mobx.observable], {
     enumerable: true,
     initializer: null
-})), _class3);
+}), _descriptor11 = _applyDecoratedDescriptor(_class3.prototype, "selected", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _applyDecoratedDescriptor(_class3.prototype, "select", [_mobx.action], Object.getOwnPropertyDescriptor(_class3.prototype, "select"), _class3.prototype)), _class3);
 var Ally = (_class5 = function (_Combatant) {
     _inherits(Ally, _Combatant);
 
@@ -47494,19 +47529,19 @@ var Ally = (_class5 = function (_Combatant) {
 
         var _this6 = _possibleConstructorReturn(this, (Ally.__proto__ || Object.getPrototypeOf(Ally)).call(this, store, ally));
 
-        _initDefineProp(_this6, "max_hp", _descriptor11, _this6);
+        _initDefineProp(_this6, "max_hp", _descriptor12, _this6);
 
-        _initDefineProp(_this6, "max_mp", _descriptor12, _this6);
+        _initDefineProp(_this6, "max_mp", _descriptor13, _this6);
 
-        _initDefineProp(_this6, "init_balance", _descriptor13, _this6);
+        _initDefineProp(_this6, "init_balance", _descriptor14, _this6);
 
-        _initDefineProp(_this6, "hp", _descriptor14, _this6);
+        _initDefineProp(_this6, "hp", _descriptor15, _this6);
 
-        _initDefineProp(_this6, "mp", _descriptor15, _this6);
+        _initDefineProp(_this6, "mp", _descriptor16, _this6);
 
-        _initDefineProp(_this6, "balance", _descriptor16, _this6);
+        _initDefineProp(_this6, "balance", _descriptor17, _this6);
 
-        _initDefineProp(_this6, "order", _descriptor17, _this6);
+        _initDefineProp(_this6, "order", _descriptor18, _this6);
 
         _this6.max_hp = ally.stats.max_hp;
         _this6.max_mp = ally.stats.max_mp;
@@ -47515,6 +47550,15 @@ var Ally = (_class5 = function (_Combatant) {
         _this6.mp = 0;
         _this6.balance = 0;
         _this6.order = 0;
+        _this6.disposer = (0, _mobx.autorun)(function () {
+            var elem = document.getElementById(_this6.id + "-health-fill");
+            var health_ratio = _this6.hp / _this6.max_hp;
+            var width = health_ratio * 100;
+            if (elem != null) {
+                elem.style.width = width + '%';
+            }
+        });
+
         return _this6;
     }
 
@@ -47530,25 +47574,25 @@ var Ally = (_class5 = function (_Combatant) {
     }]);
 
     return Ally;
-}(Combatant), (_descriptor11 = _applyDecoratedDescriptor(_class5.prototype, "max_hp", [_mobx.observable], {
+}(Combatant), (_descriptor12 = _applyDecoratedDescriptor(_class5.prototype, "max_hp", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor12 = _applyDecoratedDescriptor(_class5.prototype, "max_mp", [_mobx.observable], {
+}), _descriptor13 = _applyDecoratedDescriptor(_class5.prototype, "max_mp", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor13 = _applyDecoratedDescriptor(_class5.prototype, "init_balance", [_mobx.observable], {
+}), _descriptor14 = _applyDecoratedDescriptor(_class5.prototype, "init_balance", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor14 = _applyDecoratedDescriptor(_class5.prototype, "hp", [_mobx.observable], {
+}), _descriptor15 = _applyDecoratedDescriptor(_class5.prototype, "hp", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor15 = _applyDecoratedDescriptor(_class5.prototype, "mp", [_mobx.observable], {
+}), _descriptor16 = _applyDecoratedDescriptor(_class5.prototype, "mp", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor16 = _applyDecoratedDescriptor(_class5.prototype, "balance", [_mobx.observable], {
+}), _descriptor17 = _applyDecoratedDescriptor(_class5.prototype, "balance", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor17 = _applyDecoratedDescriptor(_class5.prototype, "order", [_mobx.observable], {
+}), _descriptor18 = _applyDecoratedDescriptor(_class5.prototype, "order", [_mobx.observable], {
     enumerable: true,
     initializer: null
 })), _class5);
@@ -47560,13 +47604,13 @@ var Enemy = (_class7 = function (_Combatant2) {
 
         var _this7 = _possibleConstructorReturn(this, (Enemy.__proto__ || Object.getPrototypeOf(Enemy)).call(this, store, enemy));
 
-        _initDefineProp(_this7, "hp_estimate", _descriptor18, _this7);
+        _initDefineProp(_this7, "hp_estimate", _descriptor19, _this7);
 
-        _initDefineProp(_this7, "mp_estimate", _descriptor19, _this7);
+        _initDefineProp(_this7, "mp_estimate", _descriptor20, _this7);
 
-        _initDefineProp(_this7, "balance_estimate", _descriptor20, _this7);
+        _initDefineProp(_this7, "balance_estimate", _descriptor21, _this7);
 
-        _initDefineProp(_this7, "order", _descriptor21, _this7);
+        _initDefineProp(_this7, "order", _descriptor22, _this7);
 
         _this7.hp_estimate = 0;
         _this7.mp_estimate = 0;
@@ -47586,16 +47630,16 @@ var Enemy = (_class7 = function (_Combatant2) {
     }]);
 
     return Enemy;
-}(Combatant), (_descriptor18 = _applyDecoratedDescriptor(_class7.prototype, "hp_estimate", [_mobx.observable], {
+}(Combatant), (_descriptor19 = _applyDecoratedDescriptor(_class7.prototype, "hp_estimate", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor19 = _applyDecoratedDescriptor(_class7.prototype, "mp_estimate", [_mobx.observable], {
+}), _descriptor20 = _applyDecoratedDescriptor(_class7.prototype, "mp_estimate", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor20 = _applyDecoratedDescriptor(_class7.prototype, "balance_estimate", [_mobx.observable], {
+}), _descriptor21 = _applyDecoratedDescriptor(_class7.prototype, "balance_estimate", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor21 = _applyDecoratedDescriptor(_class7.prototype, "order", [_mobx.observable], {
+}), _descriptor22 = _applyDecoratedDescriptor(_class7.prototype, "order", [_mobx.observable], {
     enumerable: true,
     initializer: null
 })), _class7);
@@ -47610,9 +47654,9 @@ exports.Skill = exports.SkillsStore = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _desc2, _value2, _class3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8; /**
-                                                                                                                                                                     * Created by Jeffrey on 8/29/2016.
-                                                                                                                                                                     */
+var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _desc2, _value2, _class3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9; /**
+                                                                                                                                                                                   * Created by Jeffrey on 8/29/2016.
+                                                                                                                                                                                   */
 
 var _mobx = require("mobx");
 
@@ -47713,10 +47757,12 @@ var SkillsStore = exports.SkillsStore = (_class = function () {
 
     }, {
         key: "cast",
-        value: function cast(caster_id, target_id) {
-            this.transport_layer.handle_input(caster_id, this.selected.id, target_id);
+        value: function cast(caster, target) {
+            this.transport_layer.handle_input(caster.id, this.selected.id, target.id);
             //TODO: this might not actually be threadsafe
+            this.selected.selected = false;
             this.selected = null;
+            target.selected = false;
         }
     }]);
 
@@ -47732,14 +47778,6 @@ var SkillsStore = exports.SkillsStore = (_class = function () {
     initializer: null
 }), _applyDecoratedDescriptor(_class.prototype, "cast", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "cast"), _class.prototype)), _class);
 var Skill = exports.Skill = (_class3 = function () {
-    _createClass(Skill, [{
-        key: "select",
-        value: function select() {
-            this.store.selected = this;
-            console.log(this);
-        }
-    }]);
-
     function Skill(store, skill) {
         _classCallCheck(this, Skill);
 
@@ -47753,12 +47791,15 @@ var Skill = exports.Skill = (_class3 = function () {
 
         _initDefineProp(this, "valid", _descriptor8, this);
 
+        _initDefineProp(this, "selected", _descriptor9, this);
+
         this.store = store;
         this.id = skill.id;
         this.name = skill.name;
         this.description = skill.description;
         this.condition = skill.condition;
         this.valid = skill.valid;
+        this.selected = false;
     }
 
     _createClass(Skill, [{
@@ -47766,6 +47807,12 @@ var Skill = exports.Skill = (_class3 = function () {
         value: function update(skill) {
             this.condition = skill.condition;
             this.valid = skill.valid;
+        }
+    }, {
+        key: "select",
+        value: function select() {
+            this.store.selected = this;
+            this.selected = true;
         }
     }]);
 
@@ -47783,6 +47830,9 @@ var Skill = exports.Skill = (_class3 = function () {
     enumerable: true,
     initializer: null
 }), _descriptor8 = _applyDecoratedDescriptor(_class3.prototype, "valid", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor9 = _applyDecoratedDescriptor(_class3.prototype, "selected", [_mobx.observable], {
     enumerable: true,
     initializer: null
 }), _applyDecoratedDescriptor(_class3.prototype, "select", [_mobx.action], Object.getOwnPropertyDescriptor(_class3.prototype, "select"), _class3.prototype)), _class3);
@@ -47863,14 +47913,19 @@ var Target = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
     _createClass(Target, [{
         key: "select_target",
         value: function select_target(e) {
-            this.props.skills_store.cast(this.props.me.id, this.props.target.id);
+            if (this.props.target.selected) {
+                this.props.skills_store.cast(this.props.me, this.props.target);
+            } else {
+                this.props.target.select();
+            }
         }
     }, {
         key: "render",
         value: function render() {
+            var css_class = this.props.target.selected ? "grey" : "";
             return _react2.default.createElement(
                 "li",
-                { onClick: this.select_target.bind(this) },
+                { className: css_class, onClick: this.select_target.bind(this) },
                 this.props.target.name
             );
         }
@@ -47987,7 +48042,7 @@ var TurnBar = (0, _mobxReact.observer)(function (props) {
     var up_to_bat = props.combatants_store.me != null ? props.combatants_store.me.up_to_bat : false;
     var bar_text = up_to_bat ? "YOUR TURN" : "WAITING";
     function move() {
-        var elem = document.getElementById("whitebg");
+        var elem = document.getElementById("turn-fill");
         var width = 500;
         var id = setInterval(frame, 10);
         function frame() {
@@ -48005,13 +48060,13 @@ var TurnBar = (0, _mobxReact.observer)(function (props) {
     }
     return _react2.default.createElement(
         "div",
-        { id: "bar" },
-        _react2.default.createElement("div", { id: "whitebg", className: "bar-elements" }),
-        _react2.default.createElement("div", { id: "blackbg", className: "bar-elements" }),
-        _react2.default.createElement("div", { id: "makeblack", className: "bar-elements" }),
+        { id: "turn-bar" },
+        _react2.default.createElement("div", { id: "turn-fill", className: "turn-bar-elements whitebg" }),
+        _react2.default.createElement("div", { className: "turn-bar-elements blackbg" }),
+        _react2.default.createElement("div", { className: "turn-bar-elements makeblack" }),
         _react2.default.createElement(
             "span",
-            null,
+            { id: "turn-bar-text" },
             bar_text
         )
     );

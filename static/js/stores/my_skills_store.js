@@ -40,10 +40,12 @@ export class SkillsStore {
     }
 
     //cast the currently selected skill on the ID
-    @action cast(caster_id, target_id) {
-        this.transport_layer.handle_input(caster_id, this.selected.id, target_id);
+    @action cast(caster, target) {
+        this.transport_layer.handle_input(caster.id, this.selected.id, target.id);
         //TODO: this might not actually be threadsafe
+        this.selected.selected = false;
         this.selected = null;
+        target.selected = false;
     }
 }
 
@@ -53,12 +55,9 @@ export class Skill {
     @observable description;
     @observable condition;
     @observable valid;
+    @observable selected;
 
-    @action
-    select() {
-        this.store.selected = this;
-        console.log(this);
-    }
+
 
     constructor(store, skill) {
         this.store = store;
@@ -67,10 +66,17 @@ export class Skill {
         this.description = skill.description;
         this.condition = skill.condition;
         this.valid = skill.valid;
+        this.selected = false;
     }
 
     update(skill) {
         this.condition = skill.condition;
         this.valid = skill.valid;
+    }
+
+    @action
+    select() {
+        this.store.selected = this;
+        this.selected = true;
     }
 }

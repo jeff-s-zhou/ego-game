@@ -32,13 +32,18 @@ class Allies extends React.Component {
 @observer
 class Ally extends React.Component {
     render() {
+        var bar_id = this.props.ally.id + "-health-fill";
         return (
             <li>
                 {this.props.ally.name}
                 < br />
-                {this.props.ally.max_hp}
-                < br />
-                {this.props.ally.max_mp}
+                <div id="ally-health-bar">
+                    <div id={bar_id} className="ally-health-bar-elements whitebg"></div>
+                    <div className="ally-health-bar-elements blackbg"></div>
+                    <div className="ally-health-bar-elements makeblack"></div>
+                    <span id="ally-health-bar-text">{this.props.ally.hp + "/" + this.props.ally.max_hp}</span>
+                </div>
+
             </li>
         )
     }

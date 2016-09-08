@@ -18,9 +18,9 @@ class CombatLog extends React.Component {
         return(
             <div id="combat-log">
                 <h2>Combat</h2>
-                <li>
+                <ul>
                 {entries}
-                </li>
+                </ul>
             </div>
         )
     }
@@ -34,12 +34,16 @@ class TurnEntry extends React.Component {
         entry = "Turn has been skipped"
     }
     else{
-        entry = this.props.entry.skill_cast
+        var payload_updates = "";
+        for(var key in this.props.entry.payloads_and_post_reactions){
+            payload_updates = payload_updates + " " + key;
+        }
+        entry = this.props.entry.skill_cast + payload_updates;
     }
         return(
-            <ul>
+            <li>
                 {entry}
-            </ul>
+            </li>
         )
     }
 }

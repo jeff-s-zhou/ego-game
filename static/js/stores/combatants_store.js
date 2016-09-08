@@ -102,12 +102,19 @@ class Combatant{
     @observable id;
     @observable name;
     @observable up_to_bat;
+    @observable selected;
 
     constructor(store, combatant) {
         this.store = store;
         this.id = combatant.id;
         this.name = combatant.name;
         this.up_to_bat = false;
+        this.selected = false;
+    }
+
+    @action
+    select() {
+        this.selected = true;
     }
 }
 
@@ -129,6 +136,16 @@ class Ally extends Combatant {
         this.mp = 0;
         this.balance = 0;
         this.order = 0;
+        this.disposer = autorun(() => {
+            var elem = document.getElementById(this.id + "-health-fill");
+            var health_ratio = this.hp / this.max_hp;
+            var width = health_ratio * 100;
+            if (elem != null) {
+                elem.style.width = width + '%';
+            }
+
+        });
+
     }
 
     update(ally) {

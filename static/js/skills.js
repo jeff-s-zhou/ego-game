@@ -16,7 +16,9 @@ class Skills extends React.Component {
         return (
             <div>
                 <h2>Skills</h2>
+                <ul>
                 {my_skills}
+                </ul>
             </div>
         );
     }
@@ -29,24 +31,20 @@ class SkillDisplay extends React.Component {
     }
 
     render() {
-        var skill_activate;
+        var css_class = this.props.skill.selected ? "grey" : "";
+        var skill_text = this.props.skill.name + " " + this.props.skill.condition;
+        var skill;
         if(this.props.skill.valid) {
-            skill_activate = <div onClick={this.select_skill.bind(this)}>Click here</div>
+            skill = <div className={css_class} onClick={this.select_skill.bind(this)}>{skill_text}</div>
         }
         else {
-            skill_activate = 'ON COOLDOWN"'
+            skill = <div className="greyed-text">{skill_text}</div>
         }
 
         return (
-            <div>
-                {this.props.skill.name}
-                <br />
-                {this.props.skill.description}
-                <br />
-                {this.props.skill.condition}
-                <br />
-                {skill_activate}
-            </div>
+            <li>
+                {skill}
+            </li>
         )
     }
 }

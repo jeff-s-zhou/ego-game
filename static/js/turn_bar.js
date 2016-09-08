@@ -12,7 +12,7 @@ const TurnBar = observer((props) => {
     var up_to_bat = props.combatants_store.me != null ? props.combatants_store.me.up_to_bat : false;
     var bar_text = up_to_bat ? "YOUR TURN" : "WAITING" ;
     function move() {
-        var elem = document.getElementById("whitebg");
+        var elem = document.getElementById("turn-fill");
         var width = 500;
         var id = setInterval(frame, 10);
         function frame() {
@@ -29,11 +29,11 @@ const TurnBar = observer((props) => {
         move();
     }
     return (
-        <div id="bar">
-            <div id="whitebg" className="bar-elements"></div>
-            <div id="blackbg" className="bar-elements"></div>
-            <div id="makeblack" className="bar-elements"></div>
-            <span>{bar_text}</span>
+        <div id="turn-bar">
+            <div id="turn-fill" className="turn-bar-elements whitebg"></div>
+            <div className="turn-bar-elements blackbg"></div>
+            <div className="turn-bar-elements makeblack"></div>
+            <span id="turn-bar-text">{bar_text}</span>
         </div>
     );
 });
