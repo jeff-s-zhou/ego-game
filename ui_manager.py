@@ -3,6 +3,10 @@ class UIManager:
         self.socketio = socketio
         self.room_manager = room_manager
 
+    def create_combatants_for(self, character, combatant_static_states):
+        sid = self.room_manager.get_sid(character)
+        self.socketio.emit('create combatants', combatant_static_states, room=sid, namespace='/test')
+
     def combat_start(self):
         self.socketio.emit('combat start', 'start', broadcast=True, namespace='/test')
 
@@ -14,17 +18,19 @@ class UIManager:
         #maybe this should be going into the input handler?
         pass
 
-    def update_turn_for(self, combatant, current_combatant, allies_state, enemies_state):
+    def update_turn_for(self, combatant, combatant_states, my_skill_states, current_combatant):
         sid = self.room_manager.get_sid(combatant)
-        my_combat_state = combatant.get_state()
-        self.socketio.emit('my combat state', my_combat_state, room=sid, namespace='/test')
-        self.socketio.emit('allies state', allies_state, room=sid, namespace='/test')
-        self.socketio.emit('enemies state', enemies_state, room=sid, namespace='/test')
-        self.socketio.emit('current turn', current_combatant.id, broadcast=True, namespace='/test')
+        self.socketio.emit('my skill states', my_skill_states, room=sid, namespace='/test')
+        self.socketio.emit('combatant states', combatant_states, room=sid, namespace='/test')
+        self.socketio.emit('current turn', current_combatant.id, room=sid, namespace='/test')
 
+    def update_log(self, turn_log):
+        self.socketio.emit('turn log', turn_log, broadcast=True, namespace='/test')
 
     def update_round(self):
         pass
 
     def update_turn_order(self):
         pass
+
+

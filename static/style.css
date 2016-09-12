@@ -1,0 +1,176 @@
+
+
+body {
+    background-color: #231b1b;
+    color: white;
+}
+
+h1, h2 {
+    font-family: 'Raleway', sans-serif;
+}
+
+form { padding: 3px; position: fixed; bottom: 0; color: black;}
+
+#messages { list-style-type: none; margin: 0; padding: 0; }
+#messages li { padding: 5px 10px; }
+#messages li:nth-child(odd) { background: #2d2d2d; }
+
+ul {
+    list-style-type: none;
+    font-size: 24px;
+}
+
+#display {height: 550px}
+
+.grey {background-color: #2d2d2d;}
+
+.greyed-text {color: #2d2d2d;}
+
+#log-entries li {padding: 10px}
+
+.turn-bar-elements {
+    position:absolute;
+    height: 43px;
+}
+
+#turn-bar {
+    margin: 10px;
+    height: 50px;
+    transform: skewX(-25deg);
+    z-index: -1;
+    border-style: solid;
+    border-color: white;
+    border-width: 4px;
+    text-align:center;
+}
+
+#turn-bar-text {
+    margin: 2px;
+    transform: skewX(25deg);
+    position: relative;
+
+    display: inline-block;
+    font-family: Arial, Helvetica;
+    font-size: 30px;
+    font-weight: bold;
+    mix-blend-mode: difference;
+    color: white;
+    z-index: 3;
+}
+
+.ally-health-bar-elements {
+    position:absolute;
+    height: 30px;
+}
+
+#ally-health-bar {
+    margin: 5px;
+    height: 36px;
+    transform: skewX(-25deg);
+    z-index: -1;
+    border-style: solid;
+    border-color: white;
+    border-width: 3px;
+    text-align:center;
+}
+
+#ally-health-bar-text {
+    transform: skewX(25deg);
+    position: relative;
+
+    display: inline-block;
+    font-family: Arial, Helvetica;
+    font-weight: bold;
+    mix-blend-mode: difference;
+    color: white;
+    z-index: 3;
+}
+
+
+.blackbg {
+    background:black;
+    z-index:1;
+}
+
+.whitebg {
+    background: white;
+    width:0;
+    z-index:2;
+    transform: skewX(0.5deg);
+}
+
+.makeblack {
+    background-color: #231b1b;
+    mix-blend-mode: screen;
+    z-index:4;
+}
+
+ul.tabs {
+    list-style-type: none;
+    padding: 0;
+    overflow: hidden;
+    transform: skewX(-25deg);
+    height: 60px;
+
+}
+
+/* Float the list items side by side */
+ul.tabs li {float: left;
+    background-color: white;
+    margin: 5px;
+}
+
+/* Style the links inside the list items */
+ul.tabs li a {
+
+    display: inline-block;
+    color: black;
+
+    text-align: center;
+    padding: 6px 10px;
+    text-decoration: none;
+    transition: 0.1s;
+}
+
+/* Change background color of links on hover */
+ul.tabs li a:hover {
+    padding: 10px 10px;
+}
+
+/* Create an active/current tablink class */
+ul.tabs li a.active {
+    padding: 14px 10px;
+    background-color: #2d2d2d;
+    color: white;
+}
+
+/*use focus to distinguish between selected and active*/
+/*ul.tabs li a:focus, .active {
+    padding: 14px 10px;
+    background-color: #2d2d2d;
+    color: white;
+}*/
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border-top: none;
+}
+
+/*styles the turn order turn indicator*/
+.turn-indicator {
+    float: left;
+    width: 0;
+    height: 0;
+    border-top: 13px solid transparent;
+    border-bottom: 13px solid transparent;
+    border-left: 22px solid white;
+    margin-right: 8px;
+    margin-top: 3px;
+}
+
+.not-turn {
+    float: left;
+    padding: 15px 15px;
+}

@@ -15,69 +15,40 @@ because each event needs an author so we can undo all of them that belong to the
 We also want the round and turn it's cast on so we can undo everything from a specific time
 '''
 
+
 class Event:
-    def __init__(self, caster, target):
-        # TODO: we want an author on all events
-        self.author = None
-        # TODO: also want the round and turn it's cast on
-        self.round = None
-        self.turn = None
-        self.caster = caster
-        self.target = target
-
-    def do(self):
-        pass
+    def __init__(self, type, value):
+        self.type = type
+        self.value = value
 
 
-class Damage(Event):
-    def __init__(self, caster, target, damage):
-        super().__init__(caster, target)
-        self.damage = damage
+class EventType(Enum):
+    damage = 1
+    add_status = 2
+    heal = 3
+    remove_status = 4
+    reduce_mp = 5
+    add_conditional = 6
 
-    def do(self):
-        return self.target.take_damage(self.damage)
-
-class ApplyStatus(Event):
-    def __init__(self, caster, target, status_effect):
-        super().__init__(caster, target)
-        self.status_effect = status_effect
-
-    def do(self):
-        return self.target.add_status_effects(self.status_effect)
-
-
-class ReduceMp(Event):
-    def __init__(self, caster, target, mp):
-        super().__init__(caster, target)
-        self.mp = mp
-
-    def do(self):
-        return self.target.reduce_mp(self.mp)
-
-
-#single target, multiple effects
-class Payload:
-    def __init__(self, events):
-        self.events = events
-
-    def deliver(self):
-        reactions = []
-        status_updates = []
-        for event in self.events:
-            reaction, status_update = event.do()
-            reactions.append(reaction)
-            status_updates.append(status_update)
-        return reactions, status_updates
-
-    def get_target(self):
-        return self.events[0].target
 
 class SkillCast:
-    def __init__(self, caster, targets, skill, payloads):
+    def __init__(self, caster, targets, explicit_targets, skill, payloads):
         self.caster = caster
         self.skill = skill
         self.targets = targets
+        self.explicit_targets = explicit_targets #for writing into the combat log in the pre cast
         self.payloads = payloads # can include caster if there is a payload for the caster
 
+    def description(self):
+        caster_name = self.caster.name
+        target_names = ", ".join([target.name for target in self.explicit_targets])
+        verb = self.skill.verb
+        skill_name = self.skill.name
+        return "{0} {1} {2} with {3}.".format(caster_name, verb, target_names, skill_name)
+
+class Reaction(SkillCast):
+    def __init__(self, caster, targets, explicit_targets, skill, payloads, shortform):
+        super().__init__(caster, targets, explicit_targets, skill, payloads)
+        self.shortform = shortform
 
 

@@ -6,25 +6,31 @@ class RoomManager:
         self.sid_to_character_dict = dict()
         self.character_to_sid_dict = dict()
 
-        character1_stats = Stats(300, 40, 10, 3, 0)
+        character1_stats = Stats(300, 40, 3, 3, 0, 50)
         character1 = Character(1, "Larken", character1_stats)
         slash1 = active_skills.Slash(character1)
-        character1.set_skills([slash1], [])
-        allies1 = []
-        character1.set_allies([])
-        character2_stats = Stats(400, 40, 10, 3, 0)
-        character2 = Character(2, "Shamshir", character2_stats)
-        slash2 = active_skills.Slash(character2)
-        character2.set_skills([slash2], [])
+        heal1 = active_skills.Heal(character1)
+        character1.set_skills([slash1, heal1], [])
 
-        character3_stats = Stats(500, 40, 10, 3, 0)
+        character2_stats = Stats(400, 40, 4, 3, 0, 50)
+        character2 = Character(2, "Shamshir", character2_stats)
+        heal2 = active_skills.Heal(character2)
+        slash2 = active_skills.Slash(character2)
+        protect2 = active_skills.Protect(character2)
+        character2.set_skills([slash2, heal2, protect2], [])
+
+        character3_stats = Stats(500, 40, 5, 3, 0, 50)
         character3 = Character(3, "Ilfantz", character3_stats)
+        heal3 = active_skills.Heal(character3)
         slash3 = active_skills.Slash(character3)
-        character3.set_skills([slash3], [])
+        protect3 = active_skills.Protect(character3)
+        character3.set_skills([slash3, heal3, protect3], [])
 
         allies2 = [character3]
         allies3 = [character2]
+        allies1 = []
 
+        character1.set_allies(allies1)
         character2.set_allies(allies2)
         character3.set_allies(allies3)
 

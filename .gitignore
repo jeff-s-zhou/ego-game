@@ -4,3 +4,4 @@ static/js/compiled/
 .idea/
 *.pyc
 *.db
+static/bootstrap/

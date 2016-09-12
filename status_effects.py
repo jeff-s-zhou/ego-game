@@ -1,7 +1,7 @@
+from enum import Enum
 from typing import Tuple, List
 
 import combat
-from status import Status
 
 class StateHandler():
     def __init__(self):
@@ -51,7 +51,32 @@ class Temporary(StateHandler):
         return self.valid
 
 
-class Conditional(Status):
+class StatusEffect:
+    def __init__(self):
+        pass
+
+    def is_valid(self):
+        return False
+
+    def is_visible(self):
+        return False
+
+    # TODO
+    def to_dict(self):
+        return None
+
+    def applied_to_string(self):
+        return ''
+
+
+class ConditionalType(Enum):
+    pre = 1
+    post = 2
+    self = 3
+    others = 4
+
+
+class Conditional(StatusEffect):
     def __init__(self, caster, target, types, state_handler:StateHandler):
         super().__init__()
         self.caster = caster
@@ -69,36 +94,29 @@ class Conditional(Status):
         return self.state_handler.is_castable()
 
 
-PreConditionalReturnType = Tuple[combat.SkillCast, List[combat.SkillCast]]
 
-class PreConditional(Conditional):
-    def __init__(self, caster, target, types, state_handler):
-        super().__init__(caster, target, types, state_handler)
-
-    def respond_to(self, cast: combat.SkillCast) -> PreConditionalReturnType:
-        pass
-
-
-class PostConditional(Conditional):
-    def __init__(self, caster, target, types, state_handler):
-        super().__init__(caster, target, types, state_handler)
-
-    def respond_to(self, cast: combat.SkillCast) -> List[combat.SkillCast]:
-        pass
-
-
-'''class Protect(PreConditional):
+class Protected(Conditional):
     def __init__(self, caster, target):
         state_handler = Temporary(2)
-        super().__init__(caster, target, [combat.Type.holy], state_handler)
+        super().__init__(caster, target, [ConditionalType.pre, ConditionalType.self], state_handler)
 
-    def respond_to(self, cast):
-        if (cast.target == self.target):
-            cast.set_target(self.target, self.caster)
+    def tweak(self, cast):
+            #replace cast target with caster of buff
+            #TODO: refactor this shitty logic into skillcast
+            old_payload = cast.payloads[self.target.id]
+            del cast.payloads[self.target.id]
+            cast.payloads[self.caster.id] = old_payload
+            cast.targets.remove(self.target)
+            cast.targets.append(self.caster)
+            cast.explicit_targets.remove(self.target)
+            cast.explicit_targets.append(self.caster)
             self.state_handler.triggered()
-            return cast, None
+            return None
 
+    def applied_to_string(self):
+        return 'protected'
 
+'''
 class Lifesteal(PostConditional):
     def __init__(self, caster):
         self.caster = caster

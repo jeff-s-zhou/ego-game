@@ -44,11 +44,12 @@ thread = None
 
 
 def background():
+    #TODO: replace this with waiting for all combatants to confirm initialization
+    socketio.sleep(2)
     while True:
-        print("updating")
         combat_manager.update()
         socketio.sleep(5)
-
+        combat_manager.handle_input()
 
 @app.route('/')
 def index():
@@ -88,31 +89,10 @@ def handle_input(input):
     combat_monitor.send_input(input)
 
 #TODO
-@socketio.on('fetch my character', namespace='/test')
-def fetch_my_character():
-    pass
-
-
-'''
-character state:
-    name:
-    id:
-    hp:
-    mana:
-    statuses:[
-        status:
-            type:
-            name:
-            visible:
-            duration OR cooldown:
-    ]
-    active_skills_store:[
-        skill:
-            id:
-            name:
-            cooldown:
-    ]
-'''
+@socketio.on('fetch combatants', namespace='/test')
+def fetch_combatants_for_sid():
+    character = room_manager.get_character(request.sid)
+    combat_manager.get_combatants_for_character(character)
 
 if __name__ == '__main__':
     # app.run()
