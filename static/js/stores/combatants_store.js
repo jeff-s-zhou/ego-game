@@ -3,7 +3,8 @@
  */
 
 
-import {observable, autorun, action, computed} from "mobx";
+import {observable, autorun, action, computed, reaction} from "mobx";
+import target_types from "../types";
 
 export class CombatantsStore {
     @observable allies;
@@ -38,9 +39,6 @@ export class CombatantsStore {
         this.transport_layer.create_combatants = (combatants) => {
             this.create_combatants(combatants)
         };
-
-
-
     }
 
     set_current_combatant_id(combatant_id) {
@@ -71,8 +69,6 @@ export class CombatantsStore {
             }
             else if(combatant.relation == "enemy"){
                 var enemy = new Enemy(this, combatant);
-
-
                 this.enemies[combatant.id] = enemy;
                 this.combatants[combatant.id] = enemy;
                 this.combatant_ids.push(combatant.id);
@@ -88,13 +84,33 @@ export class CombatantsStore {
     }
 
     //depending on the target type of the skill selected, we display different targets
-    //TODO actually have it depend on targets
-    get_targets(target_selector) {
-        var targets = [];
-        this.enemy_ids.map((enemy_id) => {
-            targets.push(this.enemies[enemy_id]);
+    //TODO: more complicated logic for multiple target types
+    get_targets(t_types) {
+        var targets = t_types.map(t_type => {
+            switch(t_type) {
+                case target_types.single_enemy:
+                    return this.enemy_ids.map((enemy_id) => {
+                        return this.enemies[enemy_id];
+                    });
+                case target_types.single_ally:
+                    console.log("handling ally case");
+                    return this.ally_ids.map((ally_id) => {
+                        return this.allies[ally_id];
+                    });
+                default:
+                    console.log("ERROR: default case met in CombatantsStore.get_targets");
+                    return [];
+            }
         });
-        return targets;
+        //flatten the array of arrays
+        return [].concat.apply([], targets);
+    }
+
+    @action
+    reset_selection() {
+        this.combatant_ids.map((combatant_id) => {
+            this.combatants[combatant_id].selected = false;
+        })
     }
 }
 
@@ -114,6 +130,7 @@ class Combatant{
 
     @action
     select() {
+        this.store.reset_selection();
         this.selected = true;
     }
 }
@@ -136,16 +153,6 @@ class Ally extends Combatant {
         this.mp = 0;
         this.balance = 0;
         this.order = 0;
-        this.disposer = autorun(() => {
-            var elem = document.getElementById(this.id + "-health-fill");
-            var health_ratio = this.hp / this.max_hp;
-            var width = health_ratio * 100;
-            if (elem != null) {
-                elem.style.width = width + '%';
-            }
-
-        });
-
     }
 
     update(ally) {
@@ -158,21 +165,24 @@ class Ally extends Combatant {
 }
 
 class Enemy extends Combatant {
-    @observable hp_estimate;
+    @observable hp;
     @observable mp_estimate;
     @observable balance_estimate;
     @observable order;
 
+    //TODO: decide on using hp estimate or not
     constructor(store, enemy) {
         super(store, enemy);
-        this.hp_estimate = 0;
+        this.max_hp = 10;
+        this.hp = 0;
         this.mp_estimate = 0;
         this.balance_estimate = 0;
         this.order = 0;
     }
 
     update(enemy) {
-        this.hp_estimate = enemy.state.hp_estimate;
+        //TODO: fix this hackyness
+        this.hp = enemy.state.hp_estimate;
         this.mp_estimate = enemy.state.mp_estimate;
         this.balance_estimate = enemy.state.balance_estimate;
         this.order = enemy.state.order;

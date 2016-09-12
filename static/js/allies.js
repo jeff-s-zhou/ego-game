@@ -3,6 +3,7 @@
  */
 
 var React = require('react');
+import {reaction} from "mobx";
 import {observer} from "mobx-react";
 
 @observer
@@ -19,7 +20,7 @@ class Allies extends React.Component {
 
        return (
            <div>
-               <h2>Team</h2>
+               <h2>TEAM</h2>
                <ul>
                    {me}
                    {allies}
@@ -31,6 +32,35 @@ class Allies extends React.Component {
 
 @observer
 class Ally extends React.Component {
+    constructor(props){
+        super(props);
+        this.disposer = reaction(() => props.ally.hp, hp => {
+            //TODO: abstract to handle healing
+            var final_health_width = Math.round((hp / props.ally.max_hp) * 200);
+            var elem = document.getElementById(props.ally.id + "-health-fill");
+            var width = elem.style.width;
+            if (width == "") {
+                //base case
+                width = 200;
+                elem.style.width = width/2 + '%';
+            }
+            else {
+                width = parseInt(width.slice(0, width.length - 1)) * 2;
+                var id = setInterval(frame, 10);
+                var sign = (final_health_width - width)/Math.abs(final_health_width - width);
+                function frame() {
+                    if (width == final_health_width) {
+                        clearInterval(id);
+                    } else {
+                        width += sign;
+                        elem.style.width = width/2 + '%';
+                    }
+                }
+            }
+        });
+
+    }
+
     render() {
         var bar_id = this.props.ally.id + "-health-fill";
         return (

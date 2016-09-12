@@ -39,6 +39,13 @@ export class SkillsStore {
         });
     }
 
+    @action
+    reset_selection() {
+        this.skill_ids.map((skill_id) => {
+            this.skills[skill_id].selected = false;
+        })
+    }
+
     //cast the currently selected skill on the ID
     @action cast(caster, target) {
         this.transport_layer.handle_input(caster.id, this.selected.id, target.id);
@@ -57,8 +64,6 @@ export class Skill {
     @observable valid;
     @observable selected;
 
-
-
     constructor(store, skill) {
         this.store = store;
         this.id = skill.id;
@@ -67,6 +72,7 @@ export class Skill {
         this.condition = skill.condition;
         this.valid = skill.valid;
         this.selected = false;
+        this.valid_targets = skill.valid_targets;
     }
 
     update(skill) {
@@ -76,6 +82,7 @@ export class Skill {
 
     @action
     select() {
+        this.store.reset_selection();
         this.store.selected = this;
         this.selected = true;
     }

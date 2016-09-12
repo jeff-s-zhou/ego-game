@@ -128,6 +128,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _class, _class2;
 
+var _mobx = require("mobx");
+
 var _mobxReact = require("mobx-react");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -170,7 +172,7 @@ var Allies = (0, _mobxReact.observer)(_class = function (_React$Component) {
                 React.createElement(
                     "h2",
                     null,
-                    "Team"
+                    "TEAM"
                 ),
                 React.createElement(
                     "ul",
@@ -188,10 +190,39 @@ var Allies = (0, _mobxReact.observer)(_class = function (_React$Component) {
 var Ally = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
     _inherits(Ally, _React$Component2);
 
-    function Ally() {
+    function Ally(props) {
         _classCallCheck(this, Ally);
 
-        return _possibleConstructorReturn(this, (Ally.__proto__ || Object.getPrototypeOf(Ally)).apply(this, arguments));
+        var _this3 = _possibleConstructorReturn(this, (Ally.__proto__ || Object.getPrototypeOf(Ally)).call(this, props));
+
+        _this3.disposer = (0, _mobx.reaction)(function () {
+            return props.ally.hp;
+        }, function (hp) {
+            //TODO: abstract to handle healing
+            var final_health_width = Math.round(hp / props.ally.max_hp * 200);
+            var elem = document.getElementById(props.ally.id + "-health-fill");
+            var width = elem.style.width;
+            if (width == "") {
+                //base case
+                width = 200;
+                elem.style.width = width / 2 + '%';
+            } else {
+                var frame = function frame() {
+                    if (width == final_health_width) {
+                        clearInterval(id);
+                    } else {
+                        width += sign;
+                        elem.style.width = width / 2 + '%';
+                    }
+                };
+
+                width = parseInt(width.slice(0, width.length - 1)) * 2;
+                var id = setInterval(frame, 10);
+                var sign = (final_health_width - width) / Math.abs(final_health_width - width);
+            }
+        });
+
+        return _this3;
     }
 
     _createClass(Ally, [{
@@ -224,7 +255,7 @@ var Ally = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
 
 module.exports = Allies;
 
-},{"mobx-react":8,"react":321}],4:[function(require,module,exports){
+},{"mobx":9,"mobx-react":8,"react":321}],4:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -307,7 +338,7 @@ var Home = function (_React$Component) {
                     { lg: 7 },
                     _react2.default.createElement(
                         Row,
-                        { className: "grey" },
+                        { id: "display", className: "grey" },
                         _react2.default.createElement(
                             Col,
                             { lg: 9 },
@@ -404,9 +435,9 @@ module.exports = Home;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _class, _class2; /**
-                      * Created by Jeffrey on 9/4/2016.
-                      */
+var _class, _class2, _class3; /**
+                               * Created by Jeffrey on 9/4/2016.
+                               */
 
 var _react = require("react");
 
@@ -434,8 +465,11 @@ var CombatLog = (0, _mobxReact.observer)(_class = function (_React$Component) {
     _createClass(CombatLog, [{
         key: "render",
         value: function render() {
-            var entries = this.props.log_store.turn_entries.map(function (entry) {
-                return _react2.default.createElement(TurnEntry, { entry: entry, key: entry.id });
+            var tabs = this.props.log_store.rounds.map(function (round) {
+                return _react2.default.createElement(Tab, { item: round });
+            });
+            var tab_contents = this.props.log_store.rounds.map(function (round) {
+                return _react2.default.createElement(TabContent, { item: round });
             });
 
             return _react2.default.createElement(
@@ -444,13 +478,14 @@ var CombatLog = (0, _mobxReact.observer)(_class = function (_React$Component) {
                 _react2.default.createElement(
                     "h2",
                     null,
-                    "Combat"
+                    "COMBAT"
                 ),
                 _react2.default.createElement(
                     "ul",
-                    null,
-                    entries
-                )
+                    { className: "tabs" },
+                    tabs
+                ),
+                tab_contents
             );
         }
     }]);
@@ -458,8 +493,67 @@ var CombatLog = (0, _mobxReact.observer)(_class = function (_React$Component) {
     return CombatLog;
 }(_react2.default.Component)) || _class;
 
-var TurnEntry = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
-    _inherits(TurnEntry, _React$Component2);
+//have to have own select function because of fucking javascript this contexts
+
+
+var Tab = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
+    _inherits(Tab, _React$Component2);
+
+    function Tab() {
+        _classCallCheck(this, Tab);
+
+        return _possibleConstructorReturn(this, (Tab.__proto__ || Object.getPrototypeOf(Tab)).apply(this, arguments));
+    }
+
+    _createClass(Tab, [{
+        key: "select",
+        value: function select() {
+            this.props.item.select();
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var class_name = this.props.item.selected ? "tablinks active" : "tablinks";
+            return _react2.default.createElement(
+                "li",
+                null,
+                _react2.default.createElement(
+                    "a",
+                    { href: "#", className: class_name, onClick: this.select.bind(this) },
+                    this.props.item.name
+                )
+            );
+        }
+    }]);
+
+    return Tab;
+}(_react2.default.Component)) || _class2;
+
+//TODO: generalize this later
+
+
+var TabContent = (0, _mobxReact.observer)(function (props) {
+    var tab_visible_style = {
+        display: props.item.selected ? "block" : "none"
+    };
+
+    var entries = props.item.turn_entries.map(function (entry) {
+        return _react2.default.createElement(TurnEntry, { entry: entry, key: entry.id });
+    });
+
+    return _react2.default.createElement(
+        "div",
+        { className: "tabcontent", style: tab_visible_style },
+        _react2.default.createElement(
+            "ul",
+            { id: "log-entries" },
+            entries
+        )
+    );
+});
+
+var TurnEntry = (0, _mobxReact.observer)(_class3 = function (_React$Component3) {
+    _inherits(TurnEntry, _React$Component3);
 
     function TurnEntry() {
         _classCallCheck(this, TurnEntry);
@@ -489,7 +583,7 @@ var TurnEntry = (0, _mobxReact.observer)(_class2 = function (_React$Component2) 
     }]);
 
     return TurnEntry;
-}(_react2.default.Component)) || _class2;
+}(_react2.default.Component)) || _class3;
 
 module.exports = CombatLog;
 
@@ -47108,7 +47202,7 @@ var Skills = (0, _mobxReact.observer)(_class = function (_React$Component) {
                 _react2.default.createElement(
                     "h2",
                     null,
-                    "Skills"
+                    "SKILLS"
                 ),
                 _react2.default.createElement(
                     "ul",
@@ -47179,9 +47273,9 @@ exports.CombatLogStore = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _desc, _value, _class, _descriptor, _desc2, _value2, _class3, _descriptor2, _descriptor3, _descriptor4; /**
-                                                                                                             * Created by Jeffrey on 9/4/2016.
-                                                                                                             */
+var _desc, _value, _class, _descriptor, _desc2, _value2, _class3, _descriptor2, _descriptor3, _descriptor4, _desc3, _value3, _class5, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9; /**
+                                                                                                                                                                                                             * Created by Jeffrey on 9/4/2016.
+                                                                                                                                                                                                             */
 
 var _mobx = require("mobx");
 
@@ -47236,9 +47330,9 @@ var CombatLogStore = exports.CombatLogStore = (_class = function () {
 
         _classCallCheck(this, CombatLogStore);
 
-        _initDefineProp(this, "turn_entries", _descriptor, this);
+        _initDefineProp(this, "rounds", _descriptor, this);
 
-        this.turn_entries = [];
+        this.rounds = [];
         this.transport_layer = transport_layer;
 
         this.transport_layer.update_log = function (entry) {
@@ -47251,37 +47345,118 @@ var CombatLogStore = exports.CombatLogStore = (_class = function () {
     _createClass(CombatLogStore, [{
         key: "update_log_entries",
         value: function update_log_entries(entry) {
-            this.turn_entries.push(new TurnEntry(entry));
+
+            var current_round; //TODO: do we want to make this an observable?
+            //entry.round_index is 1 indexed
+            if (entry.round_index > this.rounds.length) {
+                current_round = new Round(this, entry.round_index);
+                this.rounds.push(current_round);
+            } else {
+                current_round = this.rounds[entry.round_index - 1];
+            }
+            current_round.add_entry(entry);
         }
+    }, {
+        key: "reset_selection",
+        value: function reset_selection() {
+            this.rounds.map(function (round) {
+                round.selected = false;
+            });
+        }
+
+        //problem: order matters. So we should actually store them as arrays of arrays :/
+        //OR WE SORT, BABY
+        //no that's becoming too heinous
+
     }]);
 
     return CombatLogStore;
-}(), (_descriptor = _applyDecoratedDescriptor(_class.prototype, "turn_entries", [_mobx.observable], {
+}(), (_descriptor = _applyDecoratedDescriptor(_class.prototype, "rounds", [_mobx.observable], {
     enumerable: true,
     initializer: null
-})), _class);
-var TurnEntry = (_class3 = function TurnEntry(entry) {
+}), _applyDecoratedDescriptor(_class.prototype, "reset_selection", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "reset_selection"), _class.prototype)), _class);
+var Round = (_class3 = function () {
+    //TODO: might wanna move this to the react component
+
+    function Round(store, index) {
+        _classCallCheck(this, Round);
+
+        _initDefineProp(this, "index", _descriptor2, this);
+
+        _initDefineProp(this, "turn_entries", _descriptor3, this);
+
+        _initDefineProp(this, "selected", _descriptor4, this);
+
+        this.store = store;
+        this.index = index;
+        this.turn_entries = [];
+        this.selected = false;
+        this.select();
+    }
+
+    _createClass(Round, [{
+        key: "add_entry",
+        value: function add_entry(entry) {
+            this.turn_entries.push(new TurnEntry(entry));
+        }
+    }, {
+        key: "select",
+        value: function select() {
+            this.store.reset_selection();
+            this.selected = true;
+        }
+    }, {
+        key: "name",
+        get: function get() {
+            return "Round " + this.index;
+        }
+    }]);
+
+    return Round;
+}(), (_descriptor2 = _applyDecoratedDescriptor(_class3.prototype, "index", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor3 = _applyDecoratedDescriptor(_class3.prototype, "turn_entries", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor4 = _applyDecoratedDescriptor(_class3.prototype, "selected", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _applyDecoratedDescriptor(_class3.prototype, "select", [_mobx.action], Object.getOwnPropertyDescriptor(_class3.prototype, "select"), _class3.prototype), _applyDecoratedDescriptor(_class3.prototype, "name", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "name"), _class3.prototype)), _class3);
+var TurnEntry = (_class5 = function TurnEntry(entry) {
     _classCallCheck(this, TurnEntry);
 
-    _initDefineProp(this, "pre_reactions", _descriptor2, this);
+    _initDefineProp(this, "pre_reactions", _descriptor5, this);
 
-    _initDefineProp(this, "skill_cast", _descriptor3, this);
+    _initDefineProp(this, "skill_cast", _descriptor6, this);
 
-    _initDefineProp(this, "payloads_and_post_reactions", _descriptor4, this);
+    _initDefineProp(this, "payloads_and_post_reactions", _descriptor7, this);
 
+    _initDefineProp(this, "index", _descriptor8, this);
+
+    _initDefineProp(this, "round_index", _descriptor9, this);
+
+    this.index = entry.index;
+    this.round_index = entry.round_index;
     this.pre_reactions = entry.pre_reactions;
     this.skill_cast = entry.skill_cast;
     this.payloads_and_post_reactions = entry.payloads_and_post_reactions;
-}, (_descriptor2 = _applyDecoratedDescriptor(_class3.prototype, "pre_reactions", [_mobx.observable], {
+}, (_descriptor5 = _applyDecoratedDescriptor(_class5.prototype, "pre_reactions", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor3 = _applyDecoratedDescriptor(_class3.prototype, "skill_cast", [_mobx.observable], {
+}), _descriptor6 = _applyDecoratedDescriptor(_class5.prototype, "skill_cast", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _descriptor4 = _applyDecoratedDescriptor(_class3.prototype, "payloads_and_post_reactions", [_mobx.observable], {
+}), _descriptor7 = _applyDecoratedDescriptor(_class5.prototype, "payloads_and_post_reactions", [_mobx.observable], {
     enumerable: true,
     initializer: null
-})), _class3);
+}), _descriptor8 = _applyDecoratedDescriptor(_class5.prototype, "index", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+}), _descriptor9 = _applyDecoratedDescriptor(_class5.prototype, "round_index", [_mobx.observable], {
+    enumerable: true,
+    initializer: null
+})), _class5);
 
 },{"mobx":9}],371:[function(require,module,exports){
 "use strict";
@@ -47298,6 +47473,12 @@ var _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4
                                                                                                                                                                                                                                                                                                                                                                                                                                           */
 
 var _mobx = require("mobx");
+
+var _types = require("../types");
+
+var _types2 = _interopRequireDefault(_types);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -47424,7 +47605,6 @@ var CombatantsStore = exports.CombatantsStore = (_class = function () {
                     _this3.combatant_ids.push(combatant.id);
                 } else if (combatant.relation == "enemy") {
                     var enemy = new Enemy(_this3, combatant);
-
                     _this3.enemies[combatant.id] = enemy;
                     _this3.combatants[combatant.id] = enemy;
                     _this3.combatant_ids.push(combatant.id);
@@ -47443,18 +47623,40 @@ var CombatantsStore = exports.CombatantsStore = (_class = function () {
         }
 
         //depending on the target type of the skill selected, we display different targets
-        //TODO actually have it depend on targets
+        //TODO: more complicated logic for multiple target types
 
     }, {
         key: "get_targets",
-        value: function get_targets(target_selector) {
+        value: function get_targets(t_types) {
             var _this5 = this;
 
-            var targets = [];
-            this.enemy_ids.map(function (enemy_id) {
-                targets.push(_this5.enemies[enemy_id]);
+            var targets = t_types.map(function (t_type) {
+                switch (t_type) {
+                    case _types2.default.single_enemy:
+                        return _this5.enemy_ids.map(function (enemy_id) {
+                            return _this5.enemies[enemy_id];
+                        });
+                    case _types2.default.single_ally:
+                        console.log("handling ally case");
+                        return _this5.ally_ids.map(function (ally_id) {
+                            return _this5.allies[ally_id];
+                        });
+                    default:
+                        console.log("ERROR: default case met in CombatantsStore.get_targets");
+                        return [];
+                }
             });
-            return targets;
+            //flatten the array of arrays
+            return [].concat.apply([], targets);
+        }
+    }, {
+        key: "reset_selection",
+        value: function reset_selection() {
+            var _this6 = this;
+
+            this.combatant_ids.map(function (combatant_id) {
+                _this6.combatants[combatant_id].selected = false;
+            });
         }
     }]);
 
@@ -47480,7 +47682,7 @@ var CombatantsStore = exports.CombatantsStore = (_class = function () {
 }), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, "combatant_ids", [_mobx.observable], {
     enumerable: true,
     initializer: null
-})), _class);
+}), _applyDecoratedDescriptor(_class.prototype, "reset_selection", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "reset_selection"), _class.prototype)), _class);
 var Combatant = (_class3 = function () {
     function Combatant(store, combatant) {
         _classCallCheck(this, Combatant);
@@ -47503,6 +47705,7 @@ var Combatant = (_class3 = function () {
     _createClass(Combatant, [{
         key: "select",
         value: function select() {
+            this.store.reset_selection();
             this.selected = true;
         }
     }]);
@@ -47527,39 +47730,30 @@ var Ally = (_class5 = function (_Combatant) {
     function Ally(store, ally) {
         _classCallCheck(this, Ally);
 
-        var _this6 = _possibleConstructorReturn(this, (Ally.__proto__ || Object.getPrototypeOf(Ally)).call(this, store, ally));
+        var _this7 = _possibleConstructorReturn(this, (Ally.__proto__ || Object.getPrototypeOf(Ally)).call(this, store, ally));
 
-        _initDefineProp(_this6, "max_hp", _descriptor12, _this6);
+        _initDefineProp(_this7, "max_hp", _descriptor12, _this7);
 
-        _initDefineProp(_this6, "max_mp", _descriptor13, _this6);
+        _initDefineProp(_this7, "max_mp", _descriptor13, _this7);
 
-        _initDefineProp(_this6, "init_balance", _descriptor14, _this6);
+        _initDefineProp(_this7, "init_balance", _descriptor14, _this7);
 
-        _initDefineProp(_this6, "hp", _descriptor15, _this6);
+        _initDefineProp(_this7, "hp", _descriptor15, _this7);
 
-        _initDefineProp(_this6, "mp", _descriptor16, _this6);
+        _initDefineProp(_this7, "mp", _descriptor16, _this7);
 
-        _initDefineProp(_this6, "balance", _descriptor17, _this6);
+        _initDefineProp(_this7, "balance", _descriptor17, _this7);
 
-        _initDefineProp(_this6, "order", _descriptor18, _this6);
+        _initDefineProp(_this7, "order", _descriptor18, _this7);
 
-        _this6.max_hp = ally.stats.max_hp;
-        _this6.max_mp = ally.stats.max_mp;
-        _this6.init_balance = ally.stats.init_balance;
-        _this6.hp = 0;
-        _this6.mp = 0;
-        _this6.balance = 0;
-        _this6.order = 0;
-        _this6.disposer = (0, _mobx.autorun)(function () {
-            var elem = document.getElementById(_this6.id + "-health-fill");
-            var health_ratio = _this6.hp / _this6.max_hp;
-            var width = health_ratio * 100;
-            if (elem != null) {
-                elem.style.width = width + '%';
-            }
-        });
-
-        return _this6;
+        _this7.max_hp = ally.stats.max_hp;
+        _this7.max_mp = ally.stats.max_mp;
+        _this7.init_balance = ally.stats.init_balance;
+        _this7.hp = 0;
+        _this7.mp = 0;
+        _this7.balance = 0;
+        _this7.order = 0;
+        return _this7;
     }
 
     _createClass(Ally, [{
@@ -47599,30 +47793,34 @@ var Ally = (_class5 = function (_Combatant) {
 var Enemy = (_class7 = function (_Combatant2) {
     _inherits(Enemy, _Combatant2);
 
+    //TODO: decide on using hp estimate or not
+
     function Enemy(store, enemy) {
         _classCallCheck(this, Enemy);
 
-        var _this7 = _possibleConstructorReturn(this, (Enemy.__proto__ || Object.getPrototypeOf(Enemy)).call(this, store, enemy));
+        var _this8 = _possibleConstructorReturn(this, (Enemy.__proto__ || Object.getPrototypeOf(Enemy)).call(this, store, enemy));
 
-        _initDefineProp(_this7, "hp_estimate", _descriptor19, _this7);
+        _initDefineProp(_this8, "hp", _descriptor19, _this8);
 
-        _initDefineProp(_this7, "mp_estimate", _descriptor20, _this7);
+        _initDefineProp(_this8, "mp_estimate", _descriptor20, _this8);
 
-        _initDefineProp(_this7, "balance_estimate", _descriptor21, _this7);
+        _initDefineProp(_this8, "balance_estimate", _descriptor21, _this8);
 
-        _initDefineProp(_this7, "order", _descriptor22, _this7);
+        _initDefineProp(_this8, "order", _descriptor22, _this8);
 
-        _this7.hp_estimate = 0;
-        _this7.mp_estimate = 0;
-        _this7.balance_estimate = 0;
-        _this7.order = 0;
-        return _this7;
+        _this8.max_hp = 10;
+        _this8.hp = 0;
+        _this8.mp_estimate = 0;
+        _this8.balance_estimate = 0;
+        _this8.order = 0;
+        return _this8;
     }
 
     _createClass(Enemy, [{
         key: "update",
         value: function update(enemy) {
-            this.hp_estimate = enemy.state.hp_estimate;
+            //TODO: fix this hackyness
+            this.hp = enemy.state.hp_estimate;
             this.mp_estimate = enemy.state.mp_estimate;
             this.balance_estimate = enemy.state.balance_estimate;
             this.order = enemy.state.order;
@@ -47630,7 +47828,7 @@ var Enemy = (_class7 = function (_Combatant2) {
     }]);
 
     return Enemy;
-}(Combatant), (_descriptor19 = _applyDecoratedDescriptor(_class7.prototype, "hp_estimate", [_mobx.observable], {
+}(Combatant), (_descriptor19 = _applyDecoratedDescriptor(_class7.prototype, "hp", [_mobx.observable], {
     enumerable: true,
     initializer: null
 }), _descriptor20 = _applyDecoratedDescriptor(_class7.prototype, "mp_estimate", [_mobx.observable], {
@@ -47644,7 +47842,7 @@ var Enemy = (_class7 = function (_Combatant2) {
     initializer: null
 })), _class7);
 
-},{"mobx":9}],372:[function(require,module,exports){
+},{"../types":377,"mobx":9}],372:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -47752,6 +47950,15 @@ var SkillsStore = exports.SkillsStore = (_class = function () {
                 _this3.skills[skill.id].update(skill);
             });
         }
+    }, {
+        key: "reset_selection",
+        value: function reset_selection() {
+            var _this4 = this;
+
+            this.skill_ids.map(function (skill_id) {
+                _this4.skills[skill_id].selected = false;
+            });
+        }
 
         //cast the currently selected skill on the ID
 
@@ -47776,7 +47983,7 @@ var SkillsStore = exports.SkillsStore = (_class = function () {
 }), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "skill_ids", [_mobx.observable], {
     enumerable: true,
     initializer: null
-}), _applyDecoratedDescriptor(_class.prototype, "cast", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "cast"), _class.prototype)), _class);
+}), _applyDecoratedDescriptor(_class.prototype, "reset_selection", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "reset_selection"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "cast", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "cast"), _class.prototype)), _class);
 var Skill = exports.Skill = (_class3 = function () {
     function Skill(store, skill) {
         _classCallCheck(this, Skill);
@@ -47800,6 +48007,7 @@ var Skill = exports.Skill = (_class3 = function () {
         this.condition = skill.condition;
         this.valid = skill.valid;
         this.selected = false;
+        this.valid_targets = skill.valid_targets;
     }
 
     _createClass(Skill, [{
@@ -47811,6 +48019,7 @@ var Skill = exports.Skill = (_class3 = function () {
     }, {
         key: "select",
         value: function select() {
+            this.store.reset_selection();
             this.store.selected = this;
             this.selected = true;
         }
@@ -47852,6 +48061,12 @@ var _react2 = _interopRequireDefault(_react);
 
 var _mobxReact = require("mobx-react");
 
+var _mobx = require("mobx");
+
+var _types = require("./types");
+
+var _types2 = _interopRequireDefault(_types);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -47874,7 +48089,13 @@ var Targets = (0, _mobxReact.observer)(_class = function (_React$Component) {
         value: function render() {
             var _this2 = this;
 
-            var targets = this.props.combatants_store.get_targets("fake_data").map(function (target) {
+            var t_types;
+            if (this.props.skills_store.selected != null) {
+                t_types = this.props.skills_store.selected.valid_targets;
+            } else {
+                t_types = [_types2.default.single_enemy];
+            }
+            var targets = this.props.combatants_store.get_targets(t_types).map(function (target) {
                 return _react2.default.createElement(Target, { skills_store: _this2.props.skills_store,
                     target: target,
                     me: _this2.props.combatants_store.me,
@@ -47887,7 +48108,7 @@ var Targets = (0, _mobxReact.observer)(_class = function (_React$Component) {
                 _react2.default.createElement(
                     "h2",
                     null,
-                    "Targets"
+                    "TARGETS"
                 ),
                 _react2.default.createElement(
                     "ul",
@@ -47904,17 +48125,60 @@ var Targets = (0, _mobxReact.observer)(_class = function (_React$Component) {
 var Target = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
     _inherits(Target, _React$Component2);
 
-    function Target() {
+    function Target(props) {
         _classCallCheck(this, Target);
 
-        return _possibleConstructorReturn(this, (Target.__proto__ || Object.getPrototypeOf(Target)).apply(this, arguments));
+        var _this3 = _possibleConstructorReturn(this, (Target.__proto__ || Object.getPrototypeOf(Target)).call(this, props));
+
+        _this3.disposer = (0, _mobx.reaction)(function () {
+            return props.target.hp;
+        }, function (hp) {
+            //TODO: abstract to handle healing
+            var final_health_width = Math.round(hp / props.target.max_hp * 200);
+            var elem = document.getElementById(props.target.id + "-health-fill");
+            var width = elem.style.width;
+            if (width == "") {
+                //base case
+                width = 200;
+                elem.style.width = width / 2 + '%';
+            } else {
+                var frame = function frame() {
+                    if (width == final_health_width) {
+                        clearInterval(id);
+                    } else {
+                        width += sign;
+                        elem.style.width = width / 2 + '%';
+                    }
+                };
+
+                width = parseInt(width.slice(0, width.length - 1)) * 2;
+                var id = setInterval(frame, 10);
+                var sign = (final_health_width - width) / Math.abs(final_health_width - width);
+            }
+        });
+        return _this3;
     }
 
     _createClass(Target, [{
         key: "select_target",
         value: function select_target(e) {
             if (this.props.target.selected) {
-                this.props.skills_store.cast(this.props.me, this.props.target);
+                if (this.props.me.up_to_bat) {
+                    this.props.skills_store.cast(this.props.me, this.props.target);
+                } else {
+                    var frame = function frame() {
+                        if (flash_times <= 0) {
+                            clearInterval(id);
+                        } else {
+                            flash_times--;
+                            elem.style.width = (flash_times % 2 ? 0 : 100) + "%";
+                        }
+                    };
+
+                    var elem = document.getElementById("turn-fill");
+                    var id = setInterval(frame, 120);
+                    var flash_times = 7;
+                }
             } else {
                 this.props.target.select();
             }
@@ -47922,11 +48186,20 @@ var Target = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
     }, {
         key: "render",
         value: function render() {
+            var bar_id = this.props.target.id + "-health-fill";
             var css_class = this.props.target.selected ? "grey" : "";
             return _react2.default.createElement(
                 "li",
                 { className: css_class, onClick: this.select_target.bind(this) },
-                this.props.target.name
+                this.props.target.name,
+                _react2.default.createElement("br", null),
+                _react2.default.createElement(
+                    "div",
+                    { id: "ally-health-bar" },
+                    _react2.default.createElement("div", { id: bar_id, className: "ally-health-bar-elements whitebg" }),
+                    _react2.default.createElement("div", { className: "ally-health-bar-elements blackbg" }),
+                    _react2.default.createElement("div", { className: "ally-health-bar-elements makeblack" })
+                )
             );
         }
     }]);
@@ -47936,7 +48209,7 @@ var Target = (0, _mobxReact.observer)(_class2 = function (_React$Component2) {
 
 module.exports = Targets;
 
-},{"mobx-react":8,"react":321}],374:[function(require,module,exports){
+},{"./types":377,"mobx":9,"mobx-react":8,"react":321}],374:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -47980,7 +48253,6 @@ var TransportLayer = exports.TransportLayer = function () {
         });
 
         socket.on('current turn', function (combatant_id) {
-            console.log("hit the socket");
             _this.set_current_combatant_id(combatant_id);
         });
 
@@ -47998,7 +48270,6 @@ var TransportLayer = exports.TransportLayer = function () {
 
         socket.on('turn log', function (turn_log) {
             _this.update_log(turn_log);
-            console.log(turn_log);
         });
     }
 
@@ -48040,12 +48311,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var TurnBar = (0, _mobxReact.observer)(function (props) {
     //if not set yet, then false. If set, then check if it's true or false
     var up_to_bat = props.combatants_store.me != null ? props.combatants_store.me.up_to_bat : false;
-    var bar_text = up_to_bat ? "YOUR TURN" : "WAITING";
-    function move() {
-        var elem = document.getElementById("turn-fill");
-        var width = 500;
-        var id = setInterval(frame, 10);
-        function frame() {
+    if (up_to_bat) {
+        var frame = function frame() {
             if (width <= 0) {
                 clearInterval(id);
             } else {
@@ -48053,10 +48320,11 @@ var TurnBar = (0, _mobxReact.observer)(function (props) {
                 var pixel_width = width / 5;
                 elem.style.width = pixel_width + '%';
             }
-        }
-    }
-    if (up_to_bat) {
-        move();
+        };
+
+        var elem = document.getElementById("turn-fill");
+        var width = 500;
+        var id = setInterval(frame, 10);
     }
     return _react2.default.createElement(
         "div",
@@ -48067,7 +48335,7 @@ var TurnBar = (0, _mobxReact.observer)(function (props) {
         _react2.default.createElement(
             "span",
             { id: "turn-bar-text" },
-            bar_text
+            up_to_bat ? "YOUR TURN" : "WAITING"
         )
     );
 });
@@ -48105,7 +48373,7 @@ var TurnBar = (0, _mobxReact.observer)(function (props) {
         _react2.default.createElement(
             "h2",
             null,
-            "Turn Order"
+            "TURN ORDER"
         ),
         _react2.default.createElement(
             "ul",
@@ -48116,16 +48384,38 @@ var TurnBar = (0, _mobxReact.observer)(function (props) {
 });
 
 var Combatant = (0, _mobxReact.observer)(function (props) {
-    var up_to_bat = props.combatant.up_to_bat ? "!" : ".";
+    var up_to_bat = props.combatant.up_to_bat ? "turn-indicator" : "not-turn";
     return _react2.default.createElement(
         "li",
         null,
+        _react2.default.createElement("div", { className: up_to_bat }),
         props.combatant.name,
-        " ",
-        up_to_bat
+        " "
     );
 });
 
 module.exports = TurnBar;
 
-},{"mobx-react":8,"react":321}]},{},[6]);
+},{"mobx-react":8,"react":321}],377:[function(require,module,exports){
+'use strict';
+
+/**
+ * Created by Jeffrey on 9/10/2016.
+ */
+
+var target_types = Object.freeze({
+    self: 'self',
+    single_enemy: 'single_enemy',
+    enemy_frontline: 'enemy_frontline',
+    enemy_backline: 'enemy_backline',
+    all_enemies: 'all_enemies',
+    single_ally: 'single_ally',
+    ally_frontline: 'ally_frontline',
+    ally_backline: 'ally_backline',
+    all_allies: 'all_allies',
+    all: 'all'
+});
+
+module.exports = target_types;
+
+},{}]},{},[6]);

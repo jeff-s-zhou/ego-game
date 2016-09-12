@@ -15,7 +15,7 @@ class Skills extends React.Component {
 
         return (
             <div>
-                <h2>Skills</h2>
+                <h2>SKILLS</h2>
                 <ul>
                 {my_skills}
                 </ul>

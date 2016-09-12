@@ -16,7 +16,6 @@ export class TransportLayer {
         socket.on('connect', () => {console.log("connected");});
 
         socket.on('current turn', (combatant_id) => {
-            console.log("hit the socket");
             this.set_current_combatant_id(combatant_id);
         });
 
@@ -34,7 +33,6 @@ export class TransportLayer {
 
         socket.on('turn log', (turn_log) => {
             this.update_log(turn_log);
-            console.log(turn_log)
         });
     }
 

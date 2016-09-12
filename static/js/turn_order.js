@@ -19,7 +19,7 @@ const TurnBar = observer((props) => {
     });
     return (
         <div>
-            <h2>Turn Order</h2>
+            <h2>TURN ORDER</h2>
             <ul>
                 {combatant_elements}
             </ul>
@@ -28,9 +28,9 @@ const TurnBar = observer((props) => {
 });
 
 const Combatant = observer((props) => {
-    var up_to_bat = props.combatant.up_to_bat ? "!" : ".";
+    var up_to_bat = props.combatant.up_to_bat ? "turn-indicator" : "not-turn";
     return (
-        <li>{props.combatant.name} {up_to_bat}</li>
+        <li><div className={up_to_bat}></div>{props.combatant.name} </li>
     )
 });
 
