@@ -1,6 +1,5 @@
 import combat
 import status_effects
-from combat import SkillCast
 import copy
 
 
@@ -83,7 +82,7 @@ class Character:
     def tweak_cast(self, cast):
         pre_reactions = []
         for listener in self.get_listeners(status_effects.ConditionalType.pre):
-            pre_reaction = listener.tweak(cast)
+            pre_reaction = listener.react_to(cast)
             if pre_reaction:
                 pre_reactions.append(pre_reaction)
 
@@ -99,21 +98,21 @@ class Character:
             return [reaction], [status_update]
 
         for event in payload:
-            reaction = None
+            added_reactions = []
             status_update = None
             if event.type == combat.EventType.damage:
-                reaction, status_update = self.take_damage(event.value)
+                added_reactions, status_update = self.take_damage(event.value)
             elif event.type == combat.EventType.add_status:
-                reaction, status_update = self.add_status(event.value)
+                added_reactions, status_update = self.add_status(event.value)
             elif event.type == combat.EventType.reduce_mp:
-                reaction, status_update = self.reduce_mp(event.value)
+                added_reactions, status_update = self.reduce_mp(event.value)
             elif event.type == combat.EventType.heal:
-                reaction, status_update = self.heal(event.value)
+                added_reactions, status_update = self.heal(event.value)
             elif event.type == combat.EventType.add_conditional:
-                reaction, status_update = self.add_conditional(event.value)
+                added_reactions, status_update = self.add_conditional(event.value)
 
-            if reaction:
-                reactions.append(reaction)
+            if added_reactions:
+                reactions = reactions + added_reactions
             if status_update:
                 status_updates.append(status_update)
 
@@ -168,7 +167,14 @@ class Character:
 
     #TODO
     def signal_internal_conditions(self, state_update):
-        pass
+        post_reactions = []
+        for listener in self.get_listeners(status_effects.ConditionalType.post):
+            post_reaction = listener.react_to(state_update)
+            if post_reaction:
+                print("appending in signal internal conditions")
+                post_reactions.append(post_reaction)
+
+        return post_reactions
 
 
     def get_listeners(self, type):

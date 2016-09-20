@@ -2,7 +2,7 @@
  * Created by Jeffrey on 9/10/2016.
  */
 
-var target_types = Object.freeze({
+export const target_types = Object.freeze({
     self: 'self',
     single_enemy: 'single_enemy',
     enemy_frontline: 'enemy_frontline',
@@ -15,4 +15,3 @@ var target_types = Object.freeze({
     all: 'all'
 });
 
-module.exports = target_types;

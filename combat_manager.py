@@ -96,7 +96,8 @@ class CombatManager:
             # cast the skill, and give combatant an opportunity to react to state changes
             post_reactions, status_updates = target.receive(skill_cast.payloads[target.id])
             self.combat_logger.log_payload_update(skill_cast, status_updates)
-            '''for post_reaction in post_reactions:
+            for post_reaction in post_reactions:
+                print("there's a post reaction in do")
                 for combatant in post_reaction.targets:
                     null_reaction, status_updates = combatant.receive(post_reaction.payloads[combatant.id])
                     self.combat_logger.log_post_reaction_update(post_reaction, status_updates)
@@ -108,7 +109,7 @@ class CombatManager:
                 for global_reaction in global_reactions:
                     for combatant in global_reaction.targets:
                         null_reaction, status_updates = combatant.receive(global_reaction.payloads[combatant.id])
-                        self.combat_logger.log_post_reaction_update(global_reaction, status_updates)'''
+                        self.combat_logger.log_post_reaction_update(global_reaction, status_updates)
 
 
     def call_ui_update(self):

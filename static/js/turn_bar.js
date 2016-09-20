@@ -2,24 +2,22 @@
  * Created by Jeffrey on 9/6/2016.
  */
 
-import React from 'react'
+import React from "react";
 import {observer} from "mobx-react";
 
-
-
-const TurnBar = observer((props) => {
+export const TurnBar = observer((props) => {
     //if not set yet, then false. If set, then check if it's true or false
-    var up_to_bat = props.combatants_store.me != null ? props.combatants_store.me.up_to_bat : false;
+    let up_to_bat = props.combatants_store.me != null ? props.combatants_store.me.up_to_bat : false;
     if(up_to_bat) {
-        var elem = document.getElementById("turn-fill");
-        var width = 500;
-        var id = setInterval(frame, 10);
+        let elem = document.getElementById("turn-fill");
+        let width = 500;
+        let id = setInterval(frame, 10);
         function frame() {
             if (width <= 0) {
                 clearInterval(id);
             } else {
                 width--;
-                var pixel_width = width/5;
+                let pixel_width = width/5;
                 elem.style.width = pixel_width + '%';
             }
         }
@@ -33,5 +31,3 @@ const TurnBar = observer((props) => {
         </div>
     );
 });
-
-module.exports =  TurnBar;

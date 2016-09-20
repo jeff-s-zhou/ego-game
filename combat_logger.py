@@ -21,7 +21,7 @@ class CombatLogger:
     def log_pre_reaction_update(self, pre_reaction, status_updates):
         old_updates = self.turn.pre_reaction_updates.get(pre_reaction.to_string(), [])
         new_updates = old_updates + status_updates
-        self.turn.pre_reaction_updates[pre_reaction.to_string()] = new_updates
+        self.turn.pre_reaction_updates[pre_reaction.shortform] = new_updates
 
     def log_payload_update(self, skill_cast, status_updates):
         self.turn.payload_updates_list.append(status_updates)
@@ -32,16 +32,17 @@ class CombatLogger:
         self.turn.current_payload_update_str = payload_str
 
     def log_post_reaction_update(self, post_reaction, status_updates):
+        print("logging post_reaction_update")
         dict_for_payload = self.turn.post_reaction_updates[self.turn.current_payload_update_str]
-        old_updates =  dict_for_payload.get(post_reaction.to_string(), [])
+        old_updates =  dict_for_payload.get(post_reaction.shortform, [])
         new_updates = old_updates + status_updates
-        dict_for_payload[post_reaction.to_string()] = new_updates
+        dict_for_payload[post_reaction.shortform] = new_updates
 
 class Turn():
     def __init__(self, index, round_index):
         self.index = index
         self.round_index = round_index
-        self.pre_reaction_updates = OrderedDict() #keys: pre_reaction.to_string(), values:[StatusUpdate]
+        self.pre_reaction_updates = OrderedDict() #keys: pre_reaction.shortform, values:[StatusUpdate]
         self.cast = None #SkillCast
         self.payload_updates_list = [] #[[StatusUpdate]] list of lists because we need to associate with updates per target
         self.post_reaction_updates = dict() #keys: [StatusUpdate] to string, values:OrderedDict(keys: [post_reaction.tostring(), values:[StatusUpdate]
@@ -58,7 +59,7 @@ class Turn():
         if self.pre_reaction_updates:
 
             for pre_reaction_str, status_updates in self.pre_reaction_updates.items():
-                update_str = " ".join(status_updates)
+                update_str = " ".join([status_update.log for status_update in status_updates])
                 pre_reaction_lines.append("{0}: {1}".format(pre_reaction_str, update_str))
         pre_reactions = "\n".join(pre_reaction_lines) #return this
 
@@ -68,9 +69,10 @@ class Turn():
             dict_for_payload = self.post_reaction_updates[payload_str]
             post_reaction_lines = []
             if dict_for_payload:
+                print("reached dict_for_payload")
                 for post_reaction_str, status_updates in dict_for_payload.items():
-                    update_str = " ".join(status_updates)
-                    post_reaction_lines.append("{0}: {1}").format(post_reaction_str, update_str)
+                    update_str = " ".join([status_update.log for status_update in status_updates])
+                    post_reaction_lines.append("{0}: {1}".format(post_reaction_str, update_str))
             post_reactions = "\n".join(post_reaction_lines)
 
             #this is all you need to worry about

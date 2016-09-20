@@ -10,7 +10,8 @@ class RoomManager:
         character1 = Character(1, "Larken", character1_stats)
         slash1 = active_skills.Slash(character1)
         heal1 = active_skills.Heal(character1)
-        character1.set_skills([slash1, heal1], [])
+        tbh1 = active_skills.ThornBindHostage(character1)
+        character1.set_skills([slash1, heal1, tbh1], [])
 
         character2_stats = Stats(400, 40, 4, 3, 0, 50)
         character2 = Character(2, "Shamshir", character2_stats)

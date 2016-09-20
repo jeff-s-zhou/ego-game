@@ -4,7 +4,7 @@
 
 
 import {observable, autorun, action, computed, reaction} from "mobx";
-import target_types from "../types";
+import {target_types} from "../globals";
 
 export class CombatantsStore {
     @observable allies;
@@ -47,8 +47,6 @@ export class CombatantsStore {
         });
 
         this.combatants[combatant_id].up_to_bat = true;
-        console.log("set current combatant id");
-        console.log(this.combatants[combatant_id].up_to_bat);
     }
 
     create_combatants(combatants) {
@@ -164,7 +162,7 @@ class Ally extends Combatant {
     }
 }
 
-class Enemy extends Combatant {
+export class Enemy extends Combatant {
     @observable hp;
     @observable mp_estimate;
     @observable balance_estimate;

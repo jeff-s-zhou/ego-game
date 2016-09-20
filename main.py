@@ -48,8 +48,9 @@ def background():
     socketio.sleep(2)
     while True:
         combat_manager.update()
-        socketio.sleep(5)
+        socketio.sleep(5.5)
         combat_manager.handle_input()
+
 
 @app.route('/')
 def index():
@@ -64,7 +65,7 @@ def log_disconnected():
 
 @socketio.on('chat message', namespace='/test')
 def emit_message(message):
-    emit('chat message', message, broadcast=True)
+    emit('chat message', message, broadcast=True, namespace='/test')
 
 
 @socketio.on('connect', namespace='/test')

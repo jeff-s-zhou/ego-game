@@ -12,6 +12,7 @@ export class TransportLayer {
         this.update_my_skill_states = ((my_skills) => console.log("update my skills not registered"));
         this.update_log = ((entry) => null);
         this.create_combatants = ((combatant) => null);
+        this.update_chat = ((msg => null));
 
         socket.on('connect', () => {console.log("connected");});
 
@@ -34,6 +35,11 @@ export class TransportLayer {
         socket.on('turn log', (turn_log) => {
             this.update_log(turn_log);
         });
+
+        socket.on('chat message', (msg) => {
+            this.update_chat(msg);
+            //JQuery('#messages').append(JQuery('<li>').text(msg));
+        });
     }
 
     handle_input(caster_id, skill_id, target_id) {
@@ -47,4 +53,10 @@ export class TransportLayer {
     fetch_log() {
         this.socket.emit('fetch log');
     }
+
+    send_msg(name, text) {
+        this.socket.emit('chat message', {name: name, text: text});
+    }
+
+
 }

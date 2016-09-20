@@ -70,11 +70,10 @@ class StatusEffect:
 
 
 class ConditionalType(Enum):
-    pre = 1
-    post = 2
-    self = 3
-    others = 4
-
+    pre = "pre"
+    post = "post"
+    self = "self"
+    others = "others"
 
 class Conditional(StatusEffect):
     def __init__(self, caster, target, types, state_handler:StateHandler):
@@ -94,63 +93,44 @@ class Conditional(StatusEffect):
         return self.state_handler.is_castable()
 
 
-
 class Protected(Conditional):
     def __init__(self, caster, target):
         state_handler = Temporary(2)
         super().__init__(caster, target, [ConditionalType.pre, ConditionalType.self], state_handler)
 
-    def tweak(self, cast):
+    def react_to(self, cast):
             #replace cast target with caster of buff
-            #TODO: refactor this shitty logic into skillcast
-            old_payload = cast.payloads[self.target.id]
-            del cast.payloads[self.target.id]
-            cast.payloads[self.caster.id] = old_payload
-            cast.targets.remove(self.target)
-            cast.targets.append(self.caster)
-            cast.explicit_targets.remove(self.target)
-            cast.explicit_targets.append(self.caster)
+            old_payload = cast.remove_payload_for(self.target)
+            cast.add_payload_for(old_payload, self.caster)
+
+            modifier_message = "{0} is protecting {1}! ".format(self.caster.name, self.target.name)
+            cast.modifier_messages.append(modifier_message)
             self.state_handler.triggered()
             return None
 
     def applied_to_string(self):
-        return 'protected'
+        return 'Protected'
 
-'''
-class Lifesteal(PostConditional):
-    def __init__(self, caster):
-        self.caster = caster
-        state_handler = Permanent(6)
-        super().__init__(caster, caster, [combat.Type.lifesteal], state_handler)
+class ThornBound(Conditional):
+    def __init__(self, caster, target):
+        state_handler = Temporary(2)
+        super().__init__(caster, target, [ConditionalType.post, ConditionalType.self], state_handler)
+        self.procs = 5
 
-    def respond_to(self, cast):
-        if cast.caster == self.caster and cast.damage > 0:
-            self.state_handler.triggered()
-            return self.cast_active(cast)
-        else:
-            return None
+    def react_to(self, state_update):
+            if state_update.new_state.hp >= state_update.old_state.hp:
+                return None
 
-    def cast_active(self, original_cast:combat.SkillCast) -> combat.SkillCast:
-        heal = combat.Heal(self.caster, self.caster, original_cast.damage / 25)
-        return combat.SingleHealCast(self.caster, original_cast.target, self, [heal])
+            #else took damage
+            damage_event = combat.Event(combat.EventType.damage, 100)
+            payloads = {self.target.id: [damage_event]}
+            thorn_bound_reaction = combat.ReactionCast(self.caster, [self.target],
+                                                       [self.target], self, payloads, "Thorn Bound")
+            self.procs -= 1
+            if(self.procs == 0):
+                self.state_handler.triggered()
+            print("returning thorn_bound_reaction")
+            return thorn_bound_reaction
 
-
-class BlackBlood(PreConditional):
-    def __init__(self, caster):
-        self.caster = caster
-        self.valid = True
-        state_handler = Temporary(4)
-        super().__init__(caster, caster, [], state_handler)
-
-    def respond_to(self, cast):
-        if cast.target == self.caster and cast.skill.has_type(combat.Type.lifesteal):
-            self.state_handler.triggered()
-            #TODO this is bugged, cast needs to have its heal set to 0
-            return cast, self.cast_active(cast)
-        else:
-            return cast, None
-
-    def cast_active(self, original_cast:combat.SingleHealCast) -> combat.SkillCast:
-        heal_amount = original_cast.get_heal_amount()
-        damage = combat.Damage(original_cast.target, original_cast.caster, heal_amount)
-        return combat.SkillCast(original_cast.target, original_cast.caster, self, [damage])'''
+    def applied_to_string(self):
+        return 'Thorn Bound'

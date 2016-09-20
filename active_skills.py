@@ -4,8 +4,7 @@ import status_effects
 
 import combat
 
-
-from character import Character
+import character as ch
 
 # CONSTANTS
 
@@ -29,6 +28,10 @@ HEAL_AMOUNT = 90
 HEAL_COOLDOWN = 3
 HEAL_MANA_COST = 20
 
+#thorn bind hostage
+THORN_BIND_HOSTAGE_COOLDOWN = 5
+THORN_BIND_HOSTAGE_MANA_COST = 30
+
 
 # valid allies
 # ...do we just want to make this really mathy and then spit out the names?
@@ -47,7 +50,7 @@ class Targets(Enum):
 
 
 class Skill:
-    def __init__(self, id:int, name:str, description:str, caster: Character, types, valid_targets, verb:str):
+    def __init__(self, id:int, name:str, description:str, caster: 'ch.Character', types, valid_targets, verb:str):
         self.id = id
         self.name = name
         self.description = description
@@ -56,7 +59,7 @@ class Skill:
         self.verb = verb
         self.valid_targets = valid_targets
 
-    def cast(self, target: Character) -> combat.SkillCast:
+    def cast(self, target: 'ch.Character') -> 'combat.SkillCast':
         pass
 
     def has_type(self, type):
@@ -74,7 +77,7 @@ class Skill:
 
 # single target prototype
 class Slash(Skill):
-    def __init__(self, caster: Character):
+    def __init__(self, caster: 'ch.Character'):
         super().__init__(1, 'Slash', 'A cutting skill.',  caster, [], [Targets.single_enemy], 'attacks')
         self.cooldown = 0
         self.damage = SLASH_DAMAGE_MULTIPLIER * caster.stats.damage
@@ -84,9 +87,7 @@ class Slash(Skill):
         self.cooldown = SLASH_COOLDOWN
         damage = combat.Event(combat.EventType.damage, self.damage)
         mana_cost = combat.Event(combat.EventType.reduce_mp, SLASH_MANA_COST)
-        payloads = dict()
-        payloads[target.id] = [damage]
-        payloads[self.caster.id] = [mana_cost]
+        payloads = {target.id: [damage], self.caster.id: [mana_cost]}
         return combat.SkillCast(self.caster, [target, self.caster], [target], self, payloads)
 
     def turn_tick(self):
@@ -108,7 +109,7 @@ class Slash(Skill):
 
 
 class Heal(Skill):
-    def __init__(self, caster: Character):
+    def __init__(self, caster: 'ch.Character'):
         super().__init__(2, 'Heal', 'A healing spell.', caster, [], [Targets.single_ally], 'heals')
         self.cooldown = 0
         self.heal_amount = HEAL_AMOUNT
@@ -117,9 +118,7 @@ class Heal(Skill):
         self.cooldown = HEAL_COOLDOWN
         heal = combat.Event(combat.EventType.heal, self.heal_amount)
         mana_cost = combat.Event(combat.EventType.reduce_mp, HEAL_MANA_COST)
-        payloads = dict()
-        payloads[target.id] = [heal]
-        payloads[self.caster.id] = [mana_cost]
+        payloads = {target.id: [heal], self.caster.id: [mana_cost]}
         return combat.SkillCast(self.caster, [target, self.caster], [target], self, payloads)
 
     def turn_tick(self):
@@ -145,19 +144,46 @@ class Protect(Skill):
     def __init__(self, caster):
         self.cooldown = 0
         super().__init__(3, 'Protect', 'Take damage for the target for 3 turns.',
-                         caster, [], [Targets.single_ally], "protects")
+                         caster, [], [Targets.single_ally], "supports")
 
     def cast(self, target):
         self.cooldown = PROTECT_COOLDOWN
-        payloads = dict()
-
-        #do we add the protect buff to the target, or the recipient? probably the recipient right?
-        #so it's a pre-listener buff on the recipient...that then does a pre-reaction that damages the protect caster
         protect_buff = status_effects.Protected(self.caster, target)
         buff_event = combat.Event(combat.EventType.add_conditional, protect_buff)
         mana_cost = combat.Event(combat.EventType.reduce_mp, PROTECT_MANA_COST)
-        payloads[target.id] = [buff_event]
-        payloads[self.caster.id] = [mana_cost]
+        payloads = {target.id: [buff_event], self.caster.id: [mana_cost]}
+        return combat.SkillCast(self.caster, [target, self.caster], [target], self, payloads)
+
+    def turn_tick(self):
+        if self.cooldown > 0:
+            self.cooldown -= 1
+
+    def is_valid(self):
+        return self.cooldown == 0
+
+    def to_dict(self):
+        valid_targets = [target.value for target in self.valid_targets]
+        return {
+            'id': self.id, 'name': self.name,
+            'description': self.description,
+            'condition': self.cooldown,
+            'valid': self.is_valid(),
+            'valid_targets': valid_targets
+        }
+
+
+class ThornBindHostage(Skill):
+    def __init__(self, caster):
+        self.cooldown = 0
+        super().__init__(3, 'Thorn Bind Hostage', 'Cast Thorn Bound on target.',
+                         caster, [], [Targets.single_enemy], "curses")
+
+    def cast(self, target):
+        self.cooldown = THORN_BIND_HOSTAGE_COOLDOWN
+        thorn_bound = status_effects.ThornBound(self.caster, target)
+        debuff_event = combat.Event(combat.EventType.add_conditional, thorn_bound)
+        mana_cost = combat.Event(combat.EventType.reduce_mp, THORN_BIND_HOSTAGE_MANA_COST)
+        payloads = {target.id: [debuff_event], self.caster.id: [mana_cost]}
         return combat.SkillCast(self.caster, [target, self.caster], [target], self, payloads)
 
     def turn_tick(self):

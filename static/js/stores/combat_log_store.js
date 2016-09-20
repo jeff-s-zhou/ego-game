@@ -39,9 +39,15 @@ export class CombatLogStore {
 
     }
 
-    //problem: order matters. So we should actually store them as arrays of arrays :/
-    //OR WE SORT, BABY
-    //no that's becoming too heinous
+    @computed get current_turn() {
+        if(this.rounds.length == 0) {
+            return null;
+        }
+        var turn_entries_index = this.rounds[this.rounds.length - 1].turn_entries.length - 1;
+        return this.rounds[this.rounds.length - 1].turn_entries[turn_entries_index]
+    }
+
+
 }
 
 class Round {
