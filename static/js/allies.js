@@ -7,13 +7,13 @@ import {observer} from "mobx-react";
 import {Bar} from "./bar.js";
 
 
-export const Allies = observer(({combatants_store}) => {
-    let allies= combatants_store.ally_ids.map((ally_id) => {
-        return(<Ally ally={combatants_store.allies[ally_id]} key={ally_id} />)
+export const Allies = observer(({allies_store}) => {
+    let allies= allies_store.ally_ids.map((ally_id) => {
+        return(<Ally ally={allies_store.allies[ally_id]} key={ally_id} />)
     });
     let me;
-    if(combatants_store.me != null) {
-        me = <Ally ally={combatants_store.me}/>
+    if(allies_store.me != null) {
+        me = <Ally ally={allies_store.me}/>
     }
 
     return (

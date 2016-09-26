@@ -5,9 +5,12 @@
 import React from "react";
 import {observer} from "mobx-react";
 
-export const TurnBar = observer((props) => {
+export const TurnBar = observer(({allies_store}) => {
     //if not set yet, then false. If set, then check if it's true or false
-    let up_to_bat = props.combatants_store.me != null ? props.combatants_store.me.up_to_bat : false;
+    let up_to_bat = false;
+    if (allies_store.me != null) {
+        up_to_bat =  allies_store.me.up_to_bat
+    }
     if(up_to_bat) {
         let elem = document.getElementById("turn-fill");
         let width = 500;

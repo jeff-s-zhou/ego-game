@@ -144,7 +144,7 @@ ul.tabs li a.active {
     color: white;
 }
 
-/*use focus to distinguish between selected and active*/
+/*use focus to distinguish between is_selected and active*/
 /*ul.tabs li a:focus, .active {
     padding: 14px 10px;
     background-color: #2d2d2d;

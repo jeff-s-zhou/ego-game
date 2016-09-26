@@ -3,9 +3,9 @@
  */
 
 import React from "react";
-import {observer} from "mobx";
+import {observer} from "mobx-react";
 
-export const Chat = observer(({chat_store, combatants_store}) => {
+export const Chat = observer(({chat_store, allies_store}) => {
     let messages = chat_store.messages.map((message) => {
         return (
             <li key={message.id}>{[message.name, ": ", message.text]}</li>
@@ -17,15 +17,15 @@ export const Chat = observer(({chat_store, combatants_store}) => {
         <ul id="messages">
             {messages}
         </ul>
-        <ChatForm chat_store={chat_store} combatants_store={combatants_store}/>
+        <ChatForm chat_store={chat_store} allies_store={allies_store}/>
     </div>
     );
 });
 
-const ChatForm = observer(({chat_store, combatants_store}) => {
+const ChatForm = observer(({chat_store, allies_store}) => {
     function handleSubmit(e) {
         e.preventDefault();
-        transport_layer.send_msg(combatants_store.me.name, chat_store.outgoing_message);
+        transport_layer.send_msg(allies_store.me.name, chat_store.outgoing_message);
     }
 
     function handleChange(e) {

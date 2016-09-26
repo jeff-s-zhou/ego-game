@@ -1,7 +1,9 @@
 from character import Character, Stats
 import active_skills
 
-class RoomManager:
+
+#TODO: this is probably going to end up being a global between all the threads that needs a monitor
+class IdentityManager:
     def __init__(self):
         self.sid_to_character_dict = dict()
         self.character_to_sid_dict = dict()
@@ -36,6 +38,7 @@ class RoomManager:
         character3.set_allies(allies3)
 
         self.combatants = [character1, character2, character3]
+        self.temp_combatants = list(self.combatants)
 
 
     def get_sid(self, combatant):
@@ -47,16 +50,18 @@ class RoomManager:
         return self.combatants
 
 
-    def get_character(self, sid):
-        if sid in self.sid_to_character_dict:
-            return self.sid_to_character_dict[sid]
-        else:
-            character = self.combatants.pop()
-            self.sid_to_character_dict[sid] = character
-            self.character_to_sid_dict[character] = sid
-            return character
+    def register_sid_with_account(self, sid):
+        character = self.temp_combatants.pop()
+        self.sid_to_character_dict[sid] = character
+        self.character_to_sid_dict[character] = sid
+        return character
 
+    def get_account(self, sid):
+        pass
+
+    def get_character(self, sid):
+            return self.sid_to_character_dict[sid]
 
     def all_combatants_present(self):
-        return not self.combatants
+        return not self.temp_combatants
 

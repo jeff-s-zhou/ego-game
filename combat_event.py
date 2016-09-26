@@ -2,17 +2,23 @@ import json
 from collections import defaultdict
 from typing import List
 
+import constants
 from character import Character
 from combat import SkillCast
+import ui_manager as ui
+import combat_input_listener as input
+from combat_logger import CombatLogger
+import event
+from shared import identity_manager
 
-class CombatManager:
-    def __init__(self, combatants, ui_manager, combat_monitor, combat_logger):
-        self.combat_logger = combat_logger
-        self.combatants = combatants
-        for combatant in self.combatants:
-            combatant.combat_logger = combat_logger
-        self.ui_manager = ui_manager
-        self.combat_monitor = combat_monitor
+
+class CombatEvent(event.Event):
+    def __init__(self, characters):
+        super().__init__(event.TickType.real_time, characters)
+        self.combat_logger = CombatLogger()
+        #duplicate so we don't mess with them I think?
+        self.combatants = characters
+
         # TODO: make sure it's sorting the right way, resolve tiebreaks fairly
         self.combatants.sort(key=lambda combatant: combatant.stats.initiative)
 
@@ -20,15 +26,11 @@ class CombatManager:
         [combatant.set_order(i) for i, combatant in enumerate(self.combatants)] #1 is highest initiative
 
         self.current_combatant_index = 0
-        self.round_index = 0
+        self.round_index = 1
         self.global_pre_conditional_listeners = []
         self.global_post_conditional_listeners = []
-        # apply passives
+        # TODO: apply passives
 
-    def resolve_round(self):
-
-        #TODO: find a way to change initiative in the same round
-        pass
 
     def get_current_combatant(self):
         return self.combatants[self.current_combatant_index]
@@ -41,37 +43,33 @@ class CombatManager:
         else:
             self.current_combatant_index += 1
 
-    # TODO: remove invalids actors
-    def update(self):
-        #initialize the round, before the first handle input
-        if self.round_index == 0 and self.current_combatant_index == 0:
-            self.round_index = 1
-            self.combat_logger.set_round_index(self.round_index)
-            self.ui_manager.combat_start()
-
-        #this will be called after handle input
-        else:
-            turn_log = self.combat_logger.turn.json()
-            self.call_update_log(turn_log)
-            self.combat_logger.log_end_turn()
-            self.next_turn()
+    def initialize_ui(self):
+        return [ui.UIUpdate(ui.CombatUIEvent.ui_state, "combat")]
 
 
+    def initialize(self):
+        self.combat_logger.set_round_index(self.round_index)
         self.combat_logger.log_start_turn()
         caster = self.get_current_combatant()
         caster.my_turn_start()
-        self.call_ui_update()
+        return self.initial_combat_update()
 
 
-    def handle_input(self):
-        turn_input = self.combat_monitor.get_input()
+    #TODO: deal with invalid actors
+    def handle_input(self, turn_input):
         if turn_input:
             skill, target = self.lookup_input(turn_input)
             skill_cast = self.get_current_combatant().casts(skill, target)
             self.resolve_cast(skill_cast)
 
+        turn_log = self.combat_logger.turn.json()
+        self.combat_logger.log_end_turn()
+        self.next_turn()
 
-
+        self.combat_logger.log_start_turn()
+        caster = self.get_current_combatant()
+        caster.my_turn_start()
+        return self.combat_update(turn_log)
 
     def resolve_cast(self, skill_cast):
         self.hint(skill_cast)
@@ -97,7 +95,6 @@ class CombatManager:
             post_reactions, status_updates = target.receive(skill_cast.payloads[target.id])
             self.combat_logger.log_payload_update(skill_cast, status_updates)
             for post_reaction in post_reactions:
-                print("there's a post reaction in do")
                 for combatant in post_reaction.targets:
                     null_reaction, status_updates = combatant.receive(post_reaction.payloads[combatant.id])
                     self.combat_logger.log_post_reaction_update(post_reaction, status_updates)
@@ -112,20 +109,41 @@ class CombatManager:
                         self.combat_logger.log_post_reaction_update(global_reaction, status_updates)
 
 
-    def call_ui_update(self):
+    def initial_combat_update(self):
+        updates = []
         for combatant in self.combatants:
-            ally_states = [ally.get_state("ally") for ally in combatant.allies]
+            my_state = combatant.get_state("self")
+            ally_states = [ally.get_state("ally") for ally in combatant.allies] + [my_state]
             everyone_but_combatant = list(self.combatants)
             everyone_but_combatant.remove(combatant)
             enemies = list(set(everyone_but_combatant) - set(combatant.allies))
             enemy_states = [enemy.get_state("enemy") for enemy in enemies]
-            my_state = combatant.get_state("self")
-            combatant_states = ally_states + enemy_states + [my_state]
             my_skill_states = combatant.get_skill_states()
-            self.ui_manager.update_turn_for(combatant, combatant_states, my_skill_states, self.get_current_combatant())
 
-    def call_update_log(self, turn_log):
-        self.ui_manager.update_log(turn_log)
+            #TODO: this REALLY doesn't belong here
+            for my_skill_state in my_skill_states:
+                if my_skill_state['valid_targets'][0] == constants.Targets.single_ally.value:
+                    my_skill_state['target_ids'] = [ally.id for ally in combatant.allies]
+                elif my_skill_state['valid_targets'][0] == constants.Targets.single_enemy.value:
+                    my_skill_state['target_ids'] = [enemy.id for enemy in enemies]
+
+            a_update = ui.UIUpdate(ui.CombatUIEvent.my_ally_states, ally_states, combatant)
+            e_update = ui.UIUpdate(ui.CombatUIEvent.my_enemy_states, enemy_states, combatant)
+            s_update = ui.UIUpdate(ui.CombatUIEvent.my_skill_states, my_skill_states, combatant)
+            updates.append(a_update)
+            updates.append(e_update)
+            updates.append(s_update)
+
+        turn_update = ui.UIUpdate(ui.CombatUIEvent.current_turn, self.get_current_combatant().id)
+        updates.append(turn_update)
+        return updates
+
+    #TODO: personalize logs
+    def combat_update(self, turn_log):
+        updates = self.initial_combat_update()
+        log_update = ui.UIUpdate(ui.CombatUIEvent.turn_log, turn_log)
+        updates.append(log_update)
+        return updates
 
 
     def lookup_input(self, turn_input):
@@ -149,19 +167,27 @@ class CombatManager:
         return selected_skill, target
 
 
-
     def add_global_pre_listener(self, listener:Character):
         self.global_pre_conditional_listeners.append(listener)
 
     def add_global_post_listener(self, listener:Character):
         self.global_post_conditional_listeners.append(listener)
 
-    def get_combatants_for_character(self, character):
-        ally_static_states = [ally.get_static_state("ally") for ally in character.allies]
+    #TODO: switch on different request type
+    def handle_client_request(self, type:str, character):
+        return self.combat_initialize(character)
+
+    def get_input_listener(self):
+        return input.CombatInputListener()
+
+    def combat_initialize(self, character):
+        my_static_state = character.get_static_state("self")
+        ally_static_states = [ally.get_static_state("ally") for ally in character.allies] + [my_static_state]
         everyone_but_character = list(self.combatants)
         everyone_but_character.remove(character)
         enemies = list(set(everyone_but_character) - set(character.allies))
         enemy_static_states = [enemy.get_static_state("enemy") for enemy in enemies]
-        my_static_state = character.get_static_state("self")
-        combatant_static_states = ally_static_states + enemy_static_states + [my_static_state]
-        self.ui_manager.create_combatants_for(character, combatant_static_states)
+
+        ally_create = ui.UIUpdate(ui.CombatUIEvent.create_allies, ally_static_states, character)
+        enemy_create = ui.UIUpdate(ui.CombatUIEvent.create_enemies, enemy_static_states, character)
+        return [ally_create, enemy_create]

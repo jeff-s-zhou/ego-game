@@ -3,7 +3,8 @@
 from enum import Enum
 import character as c
 import active_skills as s
-from typing import List, Dict
+import status_effects
+from typing import List, Dict, Union
 
 class Type(Enum):
     fire = 1
@@ -11,19 +12,20 @@ class Type(Enum):
     lifesteal = 3
 
 
-class Event:
-    def __init__(self, type, value):
-        self.type = type
+class ActionType(Enum):
+    damage = "damage"
+    add_status = "add_status"
+    heal = "heal"
+    remove_status = "remove_status"
+    reduce_mp = "reduce_mp"
+    add_conditional = "add_conditional"
+
+
+action_value_type = Union[int, "status_effects.StatusEffect"]
+class Action:
+    def __init__(self, a_type: ActionType, value:action_value_type):
+        self.a_type = a_type
         self.value = value
-
-
-class EventType(Enum):
-    damage = 1
-    add_status = 2
-    heal = 3
-    remove_status = 4
-    reduce_mp = 5
-    add_conditional = 6
 
 
 class Cast:
@@ -31,7 +33,7 @@ class Cast:
                  targets: List['c.Character'],
                  explicit_targets : List['c.Character'],
                  skill: 's.Skill',
-                 payloads: Dict[int, List[Event]]):
+                 payloads: Dict[int, List[Action]]):
         self.caster = caster
         self.skill = skill
         self.targets = targets

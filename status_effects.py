@@ -83,8 +83,8 @@ class Conditional(StatusEffect):
         self.types = types
         self.state_handler = state_handler
 
-    def has_type(self, type):
-        return type in self.types
+    def has_type(self, c_type):
+        return c_type in self.types
 
     def is_valid(self):
         return self.state_handler.valid
@@ -122,8 +122,8 @@ class ThornBound(Conditional):
                 return None
 
             #else took damage
-            damage_event = combat.Event(combat.EventType.damage, 100)
-            payloads = {self.target.id: [damage_event]}
+            damage_action = combat.Action(combat.ActionType.damage, 100)
+            payloads = {self.target.id: [damage_action]}
             thorn_bound_reaction = combat.ReactionCast(self.caster, [self.target],
                                                        [self.target], self, payloads, "Thorn Bound")
             self.procs -= 1

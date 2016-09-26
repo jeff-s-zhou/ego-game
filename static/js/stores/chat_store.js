@@ -4,8 +4,8 @@
 /* @flow */
 
 import {observable, autorun, action, computed} from "mobx";
-import {TransportLayer} from "../transport_layer";
-type transport_layer_type = typeof TransportLayer;
+import {CombatTransportLayer} from "../combat_transport_layer";
+type transport_layer_type = typeof CombatTransportLayer;
 
 export class ChatStore {
     @observable messages :Message[];

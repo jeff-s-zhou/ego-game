@@ -97,19 +97,19 @@ class Character:
             reaction, status_update = self.state_change_process(self.state, self.state, log)
             return [reaction], [status_update]
 
-        for event in payload:
+        for action in payload:
             added_reactions = []
             status_update = None
-            if event.type == combat.EventType.damage:
-                added_reactions, status_update = self.take_damage(event.value)
-            elif event.type == combat.EventType.add_status:
-                added_reactions, status_update = self.add_status(event.value)
-            elif event.type == combat.EventType.reduce_mp:
-                added_reactions, status_update = self.reduce_mp(event.value)
-            elif event.type == combat.EventType.heal:
-                added_reactions, status_update = self.heal(event.value)
-            elif event.type == combat.EventType.add_conditional:
-                added_reactions, status_update = self.add_conditional(event.value)
+            if action.a_type == combat.ActionType.damage:
+                added_reactions, status_update = self.take_damage(action.value)
+            elif action.a_type == combat.ActionType.add_status:
+                added_reactions, status_update = self.add_status(action.value)
+            elif action.a_type == combat.ActionType.reduce_mp:
+                added_reactions, status_update = self.reduce_mp(action.value)
+            elif action.a_type == combat.ActionType.heal:
+                added_reactions, status_update = self.heal(action.value)
+            elif action.a_type == combat.ActionType.add_conditional:
+                added_reactions, status_update = self.add_conditional(action.value)
 
             if added_reactions:
                 reactions = reactions + added_reactions
@@ -177,11 +177,11 @@ class Character:
         return post_reactions
 
 
-    def get_listeners(self, type):
+    def get_listeners(self, c_type):
         return_list = []
         for conditional in self.state.conditionals:
             #I miss pattern matching
-            if type in conditional.types:
+            if c_type in conditional.types:
                     if conditional.is_castable():
                         return_list.append(conditional)
         return return_list
@@ -221,6 +221,7 @@ class Character:
 
         if relation == "enemy":
             return {'relation': 'enemy', 'id': self.id, 'state':self.state.to_dict(relation, self.stats)}
+
 
     def get_skill_states(self):
         return [skill.to_dict() for skill in self.active_skills]

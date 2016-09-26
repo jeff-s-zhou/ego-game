@@ -4,7 +4,7 @@
 
 import React from 'react'
 import {observer} from "mobx-react";
-import {Enemy} from "./stores/combatants_store";
+import {Enemy} from "./stores/enemies_store";
 
 export const TurnOrder = observer((props) => {
     let combatants = props.combatants_store.combatant_ids.map((id) => {

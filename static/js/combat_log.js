@@ -37,7 +37,7 @@ class Tab extends React.Component {
     }
 
     render() {
-        let class_name = this.props.item.selected ? "tablinks active" : "tablinks";
+        let class_name = this.props.item.is_selected ? "tablinks active" : "tablinks";
         return (
             <li><a href="#" className={class_name} onClick={this.select.bind(this)}>{this.props.item.name}</a></li>
         )
@@ -47,7 +47,7 @@ class Tab extends React.Component {
 //TODO: generalize this later
 const TabContent = observer(props => {
     let tab_visible_style = {
-      display: props.item.selected ? "block" : "none"
+      display: props.item.is_selected ? "block" : "none"
     };
 
     let entries = props.item.turn_entries.map((entry) => {

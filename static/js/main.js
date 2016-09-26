@@ -19,7 +19,7 @@ let LinkContainer = require('react-router-bootstrap/lib/LinkContainer');
 
 //our own react modules, handled differently
 
-import {CombatContainer} from './combat'
+import {AdventureContainer} from './adventure_container'
 
 class App extends React.Component{
   render() {
@@ -34,7 +34,7 @@ class App extends React.Component{
 ReactDOM.render((
   <Router history={BrowserHistory}>
       <Route path="/" component={App}>
-          <IndexRoute component={CombatContainer} />
+          <IndexRoute component={AdventureContainer} />
       </Route>
   </Router>
   ), document.getElementById('content')
