@@ -24,7 +24,7 @@ export class CombatContainer extends React.Component {
     constructor(props) {
         super(props);
         let combat_transport_layer = new CombatTransportLayer(props.socket);
-        let enemies_store = new EnemiesStore(combat_transport_layer);
+        let enemies_store = new EnemiesStore(combat_transport_layer, props.initializers.enemies);
         let combatants_store = new CombatantsStore(combat_transport_layer, props.allies_store, enemies_store);
         this.state = {
             enemies_store: enemies_store,
@@ -32,7 +32,6 @@ export class CombatContainer extends React.Component {
             my_skills_store: new SkillsStore(combat_transport_layer, combatants_store),
             log_store: new CombatLogStore(combat_transport_layer)
         };
-        combat_transport_layer.ready()
     }
 
     render() {

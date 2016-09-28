@@ -12,7 +12,7 @@ from flask_restless import APIManager
 from flask import Flask, render_template, request
 from flask_socketio import emit
 from combat_event import CombatEvent
-from adventure_manager import AdventureManager
+from adventure import Adventure
 import models
 
 
@@ -33,10 +33,9 @@ adventure_manager = None
 
 def background():
     #TODO: replace this with waiting for all combatants to confirm initialization
-    adventure_manager = AdventureManager(CombatEvent)
-    socketio.sleep(1)
-    while True:
-        adventure_manager.update()
+    party = list(identity_manager.get_combatants())
+    adventure_manager = Adventure(CombatEvent, party)
+    adventure_manager.run()
 
 
 @app.route('/')
@@ -54,14 +53,13 @@ def log_disconnected():
 def emit_message(message):
     emit('chat message', message, broadcast=True, namespace='/test')
 
-@socketio.on('client request', namespace='/test')
-def handle_client_request(request_type):
-    if(request_type == "adventure ready"):
-        identity_manager.register_sid_with_account(request.sid)
-        if identity_manager.all_combatants_present():
-            global thread
-            if thread is None:
-                thread = socketio.start_background_task(target=background)
+@socketio.on('client ready', namespace='/test')
+def handle_client_request():
+    identity_manager.register_sid_with_account(request.sid)
+    if identity_manager.all_combatants_present():
+        global thread
+        if thread is None:
+            thread = socketio.start_background_task(target=background)
 
 
 @socketio.on('connect', namespace='/test')

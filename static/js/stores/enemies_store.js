@@ -7,9 +7,10 @@ export class EnemiesStore {
     @observable enemies;
     @observable enemy_ids;
 
-    constructor(transport_layer) {
+    constructor(transport_layer, enemies) {
         this.enemies = {};
         this.enemy_ids = [];
+        this.create_enemies(enemies);
 
         this.transport_layer = transport_layer;
 

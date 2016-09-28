@@ -34,12 +34,10 @@ export class CombatTransportLayer {
     }
 
     handle_input(caster_id, skill_id, target_id) {
-        this.socket.emit('turn input', {caster_id:caster_id, skill_id:skill_id, target_id:target_id})
+        let value = {caster_id:caster_id, skill_id:skill_id, target_id:target_id};
+        this.socket.emit('input', {class: 'combat', type: 'turn input', value: value})
     }
 
-    ready() {
-        this.socket.emit('combat client request', 'combat ready');
-    }
 
     fetch_log() {
         this.socket.emit('fetch log');

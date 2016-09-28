@@ -7,16 +7,17 @@ export class TransportLayer {
 
     constructor(socket) {
         this.socket = socket;
-        this.set_ui_state = ((ui_state) => null);
+        this.set_event = ((ui_state) => null);
         this.create_allies = ((allies) => null);
         this.update_ally_states = ((ally_states) => null);
         this.update_chat = ((msg => null));
 
-        socket.on('ui state', (ui_state) => {
-            console.log("transport_layer handling ui state");
-            this.set_ui_state(ui_state);
+        socket.on('set event', (event) => {
+            console.log("transport_layer handling setting event");
+            this.set_event(event);
         });
 
+        //TODO: likely redundant
         socket.on('create allies', (allies) => {
             this.create_allies(allies);
         });
@@ -31,7 +32,11 @@ export class TransportLayer {
     }
 
     ready() {
-        this.socket.emit('client request', 'adventure ready');
+        this.socket.emit('client ready')
+    }
+
+    initialize_adventure() {
+        this.socket.emit('input', {class: "general", type:"initialize adventure"})
     }
 
     send_msg(name, text) {

@@ -36,6 +36,7 @@ export class AlliesStore {
     }
 
     create_allies(allies) {
+        console.log("creating allies")
         allies.map((ally) => {
             if(ally.relation == "self"){
                 console.log("adding me");
@@ -83,6 +84,7 @@ class Ally {
     @observable order;
 
     constructor(store, ally) {
+        console.log("inside ally constructor");
         this.store = store;
         this.id = ally.id;
         this.name = ally.name;

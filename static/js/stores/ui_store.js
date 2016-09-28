@@ -7,22 +7,24 @@
 import {observable} from "mobx";
 
 export const EVENT_TYPE = {
-    combat:"combat"
+    combat:"combat event"
 };
 
+//TODO: rename, this isn't really the UI store
 export class UIStore {
-    @observable event_type;
+    @observable event;
 
     constructor(transport_layer) {
-        this.event_type = null;
+        this.event = {type: null, initializers:{}};
         this.transport_layer = transport_layer;
-        this.transport_layer.set_ui_state = (ui_state) => {
-            this.set_state(ui_state);
+        this.transport_layer.set_event = (event) => {
+            this.set_event(event);
         }
     }
 
-    set_state(state) {
-        console.log("updating from ui store");
-        this.event_type = state;
+    set_event(event) {
+        this.event = event;
     }
 }
+
+
